@@ -17,7 +17,7 @@ export class LearningPhaseVideoDto
 
     @AutoMap()
     @ApiProperty()
-    Link:string
+    File:string
 
     @ApiProperty()
     @AutoMap()
@@ -30,4 +30,8 @@ export class LearningPhaseVideoDto
     @ApiProperty()
     @AutoMap()
     WatchedDuration:number = 0
+    
+    @ApiProperty()
+    @AutoMap()
+    CreatedAt:Date
 }

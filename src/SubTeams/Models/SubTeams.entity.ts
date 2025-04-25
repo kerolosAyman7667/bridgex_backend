@@ -45,6 +45,8 @@ export class SubTeams extends EntityBase {
     @AutoMap()
     TeamId!:string
 
+    KnowledgeBaseId:string
+
     @AutoMap(()=> Teams)
     Team?: Teams
 
@@ -56,7 +58,6 @@ export class SubTeams extends EntityBase {
 
     @AutoMap(() => [SubTeamChannels])
     Channels?: SubTeamChannels[]
-
     
     @AutoMap(() => [SubTeamMembers])
     Members?: SubTeamMembers[]

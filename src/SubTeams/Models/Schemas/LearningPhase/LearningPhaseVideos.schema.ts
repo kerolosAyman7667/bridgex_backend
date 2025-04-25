@@ -33,14 +33,15 @@ export class LearningPhaseVideosSchema extends Schema<LearningPhaseVideos> {
                 },
                 Duration:{
                     type:"decimal",
-                    precision:2,
+                    precision: 12, // total digits
+                    scale: 2,     // digits after decimal
                     nullable:true,
                 }
             },
             relations: {
                 Section: {
                     type: "many-to-one",
-                    target: SubTeams.name,
+                    target: LearningPhaseSections.name,
                     joinColumn: { name: GetKey<LearningPhaseVideos>("SectionId"),referencedColumnName:GetKey<LearningPhaseSections>("Id")}, 
                     inverseSide:GetKey<LearningPhaseSections>("Videos"),
                     onDelete: "RESTRICT",

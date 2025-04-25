@@ -1,5 +1,5 @@
 import { applyDecorators, ArgumentMetadata, PipeTransform } from "@nestjs/common";
-import { SubTeamSearchId } from "../Dtos/SubTeamSearchId";
+import { SubTeamSearchId, SubTeamSearchIdWithSection } from "../Dtos/SubTeamSearchId";
 import { ApiParam } from "@nestjs/swagger";
 
 export class SubTeamParamPipe implements PipeTransform<SubTeamSearchId> {
@@ -7,6 +7,14 @@ export class SubTeamParamPipe implements PipeTransform<SubTeamSearchId> {
     const { communityId, teamId, subTeamId } = value;
 
     return new SubTeamSearchId(communityId, teamId, subTeamId);
+  }
+}
+
+export class SubTeamParamWithSectionPipe implements PipeTransform<SubTeamSearchId> {
+  transform(value: any, metadata: ArgumentMetadata): SubTeamSearchId {
+    const { communityId, teamId, subTeamId, sectionId } = value;
+
+    return new SubTeamSearchIdWithSection(communityId, teamId, subTeamId, sectionId);
   }
 }
 

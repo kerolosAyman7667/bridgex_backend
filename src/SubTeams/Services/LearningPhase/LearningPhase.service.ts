@@ -11,32 +11,84 @@ import { LearningPhaseSections } from "src/SubTeams/Models/LearningPhase/Learnin
 import { ConflictException, Inject, NotFoundException } from "@nestjs/common";
 import { CreateSectionDto } from "src/SubTeams/Dtos/LearningPhase/CreateSection.dto";
 import { IFileService } from "src/Common/FileUpload/IFile.service";
+import { LearningPhaseResourcesFileOptions } from "src/Common/FileUpload/FileTypes/LearningPhaseResources.file";
+import { LearningPhaseResources } from "src/SubTeams/Models/LearningPhase/LearningPhaseResources.entity";
+import { LearningPhaseVideos } from "src/SubTeams/Models/LearningPhase/LearningPhaseVideos.entity";
+import { LearningPhaseVideosFileOptions } from "src/Common/FileUpload/FileTypes/LearningPhaseVideos.file";
+import { getVideoDurationInSeconds } from 'get-video-duration';
+import { UserProgress } from "src/SubTeams/Models/LearningPhase/UserProgress.entity";
+import { ISubTeamsMembersService } from "../Members/ISubTeamMembers.service";
+import { UsersService } from "src/Users/Services/Users.service";
+import { GetKey } from "src/Common/GetKeyFrom";
+import { join } from "path";
 
-export class LearningPhaseService implements ILearningPhaseService
-{
+export class LearningPhaseService implements ILearningPhaseService {
     @Inject(ISubTeamsService)
-    private readonly subTeamService:ISubTeamsService
+    private readonly subTeamService: ISubTeamsService
 
     @Inject(`REPO_${LearningPhaseSections.name.toUpperCase()}`)
-    private readonly sectionRepo:GenericRepo<LearningPhaseSections>;
+    private readonly sectionRepo: GenericRepo<LearningPhaseSections>;
+
+    @Inject(`REPO_${LearningPhaseResources.name.toUpperCase()}`)
+    private readonly resourcesRepo: GenericRepo<LearningPhaseResources>;
+
+    @Inject(`REPO_${LearningPhaseVideos.name.toUpperCase()}`)
+    private readonly videosRepo: GenericRepo<LearningPhaseVideos>;
+
+    @Inject(`REPO_${UserProgress.name.toUpperCase()}`)
+    private readonly userProgressRepo: GenericRepo<UserProgress>;
+
+    @Inject(ISubTeamsMembersService)
+    private readonly membersService: ISubTeamsMembersService;
 
     @Inject(IFileService)
-    private readonly fileService:IFileService;
+    private readonly fileService: IFileService;
 
-    async AddSection(dto:CreateSectionDto, searchIds: SubTeamSearchId, leaderId: string): Promise<LearningPhaseSectionDto> {
-        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId,leaderId);
+    private readonly userService: UsersService;
+
+    async GetVideo(videoId: string, searchIds: SubTeamSearchIdWithSection): Promise<LearningPhaseVideoDto> {
+        const video = await this.videosRepo.FindOne({ Id: videoId, SectionId: searchIds.sectionId, Section: { SubTeamId: searchIds.subTeamId } }, { Section: true });
+        if (!video) {
+            throw new NotFoundException("Video not found");
+        }
+
+        const returnDto = new LearningPhaseVideoDto()
+        returnDto.File = video.File;
+        returnDto.Name = video.Name;
+        returnDto.Id = video.Id;
+        returnDto.Duration = video.Duration;
+        returnDto.Desc = video.Desc;
+
+        return returnDto;
+    }
+
+    async GetResource(resourceId: string, searchIds: SubTeamSearchIdWithSection): Promise<LearningPhaseResourceDto> {
+        const resource = await this.resourcesRepo.FindOne({ Id: resourceId, SectionId: searchIds.sectionId, Section: { SubTeamId: searchIds.subTeamId } }, { Section: true });
+        if (!resource) {
+            throw new NotFoundException("Resource not found");
+        }
+
+        const returnDto = new LearningPhaseResourceDto()
+        returnDto.File = resource.File;
+        returnDto.Name = resource.Name;
+        returnDto.Id = resource.Id;
+
+        return returnDto
+    }
+
+    async AddSection(dto: CreateSectionDto, searchIds: SubTeamSearchId, leaderId: string): Promise<LearningPhaseSectionDto> {
+        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
         const newSection = new LearningPhaseSections();
         newSection.Name = dto.Name;
-        if(!dto.Number || dto.Number === 0)
-        {
-            const sectionCount:number = await this.sectionRepo.Repo.countBy({SubTeamId:subTeam.Id});
+        newSection.SubTeamId = subTeam.Id;
+
+        if (!dto.Number || dto.Number === 0) {
+            const sectionCount: number = await this.sectionRepo.Repo.maximum("Number", { SubTeamId: subTeam.Id });
             newSection.Number = sectionCount + 1;
         }
-        else
-        {
-            const sectionWithSameNumber = await this.sectionRepo.FindOne({Number:newSection.Number,SubTeamId:subTeam.Id});
-            if(sectionWithSameNumber)
-            {
+        else {
+            const sectionWithSameNumber = await this.sectionRepo.FindOne({ Number: dto.Number, SubTeamId: subTeam.Id });
+            if (sectionWithSameNumber) {
                 throw new ConflictException(`Section ${sectionWithSameNumber.Name} already has the number ${sectionWithSameNumber.Number}`);
             }
             newSection.Number = dto.Number;
@@ -51,52 +103,198 @@ export class LearningPhaseService implements ILearningPhaseService
         return returnDto;
     }
 
-    async UpdateSection(dto:CreateSectionDto, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
-        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId,leaderId);
-        const section = await this.sectionRepo.FindOne({Id:searchIds.sectionId,SubTeamId:subTeam.Id});
-        if(!section)
-        {
+    async UpdateSection(dto: CreateSectionDto, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
+        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
+        const section = await this.sectionRepo.FindOne({ Id: searchIds.sectionId, SubTeamId: subTeam.Id });
+        if (!section) {
             throw new NotFoundException("There is no section with this id")
         }
         section.Name = dto.Name;
-        if(dto.Number && dto.Number > 0 && dto.Number !== section.Number)
-        {
-            const sectionWithSameNumber = await this.sectionRepo.FindOne({Number:section.Number,SubTeamId:subTeam.Id});
-            if(sectionWithSameNumber)
-            {
+        if (dto.Number && dto.Number > 0 && dto.Number !== section.Number) {
+            const sectionWithSameNumber = await this.sectionRepo.FindOne({ Number: dto.Number, SubTeamId: subTeam.Id });
+            if (sectionWithSameNumber) {
                 throw new ConflictException(`Section ${sectionWithSameNumber.Name} already has the number ${sectionWithSameNumber.Number}`);
             }
             section.Number = dto.Number;
         }
 
-        await this.sectionRepo.Update(section.Id,section);
-    }
-    
-    DeleteSection(searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-    
-    UploadVideo(dto: CreateVideoDto, file: Express.Multer.File, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<LearningPhaseVideoDto> {
-        throw new Error("Method not implemented.");
+        await this.sectionRepo.Update(section.Id, section);
     }
 
-    UpdateVideo(dto: CreateVideoDto, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
-        throw new Error("Method not implemented.");
+    async DeleteSection(searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
+        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
+        const section = await this.sectionRepo.FindOne({ SubTeamId: subTeam.Id, Id: searchIds.sectionId }, { Resources: true, Videos: true })
+        for (const resource of section.Resources) {
+            await this.fileService.Remove(resource.File, LearningPhaseResourcesFileOptions, false);
+            await this.resourcesRepo.Delete(resource.Id);
+        }
+
+        for (const video of section.Videos) {
+            await this.fileService.Remove(video.File, LearningPhaseVideosFileOptions, false);
+            await this.videosRepo.Delete(video.Id);
+        }
+
+        await this.sectionRepo.Delete(section.Id);
     }
 
-    DeleteVideo(videoId: string, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
-        throw new Error("Method not implemented.");
+    async UploadVideo(dto: CreateVideoDto, file: Express.Multer.File, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<LearningPhaseVideoDto> {
+        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
+        const section = await this.sectionRepo.FindOne({ Id: searchIds.sectionId, SubTeamId: subTeam.Id });
+        const fileUpload = await this.fileService.Upload
+            (
+                [file],
+                LearningPhaseVideosFileOptions
+            )
+
+        const video = new LearningPhaseVideos();
+        video.Name = dto.Name;
+        video.File = `${LearningPhaseVideosFileOptions.Dest}${fileUpload[0].FileName}`
+        video.SectionId = section.Id;
+        video.Desc = dto.Desc;
+        try {
+            const duration = await getVideoDurationInSeconds(join(__dirname, "..", "..", "..", "..", "files", fileUpload[0].FilePath))
+            video.Duration = duration;
+        } catch (err) {
+            console.log(err)
+        }
+        await this.videosRepo.Insert(video)
+
+        const returnDto = new LearningPhaseVideoDto()
+        returnDto.File = video.File;
+        returnDto.Name = video.Name;
+        returnDto.Id = video.Id;
+        returnDto.Duration = video.Duration;
+        returnDto.Desc = video.Desc;
+
+        return returnDto;
     }
 
-    UploadResource(dto: CreateResourceDto, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<LearningPhaseResourceDto> {
-        throw new Error("Method not implemented.");
+    async UpdateVideo(dto: CreateVideoDto, videoId: string, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
+        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
+        const video = await this.videosRepo.FindOne({ SectionId: searchIds.sectionId, Id: videoId, Section: { SubTeamId: subTeam.Id } }, { Section: true })
+        if (!video) {
+            throw new NotFoundException("Video is not found");
+        }
+        video.Name = dto.Name;
+        video.Desc = dto.Desc;
+
+        await this.videosRepo.Update(video.Id, video);
     }
 
-    UpdateResource(dto: CreateResourceDto, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
-        throw new Error("Method not implemented.");
+    async DeleteVideo(videoId: string, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
+        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
+        const video = await this.videosRepo.FindOne({ SectionId: searchIds.sectionId, Id: videoId, Section: { SubTeamId: subTeam.Id } }, { Section: true })
+        if (!video) {
+            throw new NotFoundException("Video is not found");
+        }
+
+        await this.fileService.Remove(video.File, LearningPhaseVideosFileOptions, false)
+        await this.videosRepo.Delete(video.Id)
     }
 
-    DeleteResources(resourceId: string, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
-        throw new Error("Method not implemented.");
+    async UploadResource(dto: CreateResourceDto, file: Express.Multer.File, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<LearningPhaseResourceDto> {
+        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
+        const section = await this.sectionRepo.FindOne({ Id: searchIds.sectionId, SubTeamId: subTeam.Id });
+
+        const fileUpload = await this.fileService.Upload
+            (
+                [file],
+                LearningPhaseResourcesFileOptions
+            )
+
+        const resource = new LearningPhaseResources();
+        resource.Name = dto.Name;
+        resource.File = `${LearningPhaseResourcesFileOptions.Dest}${fileUpload[0].FileName}`
+        resource.SectionId = section.Id;
+
+        await this.resourcesRepo.Insert(resource)
+
+        const returnDto = new LearningPhaseResourceDto()
+        returnDto.File = resource.File;
+        returnDto.Name = resource.Name;
+        returnDto.Id = resource.Id;
+
+        return returnDto;
+    }
+
+    async UpdateResource(dto: CreateResourceDto, resourceId: string, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
+        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
+        const resource = await this.resourcesRepo.FindOne({ SectionId: searchIds.sectionId, Id: resourceId, Section: { SubTeamId: subTeam.Id } }, { Section: true })
+        if (!resource) {
+            throw new NotFoundException("Resource is not found");
+        }
+        resource.Name = dto.Name;
+
+        await this.resourcesRepo.Update(resource.Id, resource);
+    }
+
+    async DeleteResources(resourceId: string, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
+        const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
+        const resource = await this.resourcesRepo.FindOne({ SectionId: searchIds.sectionId, Id: resourceId, Section: { SubTeamId: subTeam.Id } }, { Section: true })
+        if (!resource) {
+            throw new NotFoundException("Resource is not found");
+        }
+
+        await this.fileService.Remove(resource.File, LearningPhaseResourcesFileOptions, false)
+        await this.resourcesRepo.Delete(resource.Id)
+    }
+
+    async CompleteVideo(videoId: string, userId: string, checkOnTheUser: boolean = true): Promise<void> {
+        const video = await this.videosRepo.FindOne({ Id: videoId }, { Section: true })
+        if (checkOnTheUser) {
+            const isExist = await this.membersService.IsMemberExist(video.Section.SubTeamId, userId)
+            if (!isExist)
+                throw new NotFoundException("Video not found")
+        }
+
+        const isUserProgressExist = await this.userProgressRepo.FindOne({ UserId: userId, VideoId: video.Id });
+        if (isUserProgressExist) {
+            isUserProgressExist.IsCompleted = true
+            await this.userProgressRepo.Update(isUserProgressExist.Id, isUserProgressExist);
+        } else {
+            const userExist = await this.userService.FindById(userId, true)
+            const userProgress = new UserProgress();
+            userProgress.UserId = userExist.Id;
+            userProgress.VideoId = video.Id;
+            userProgress.IsCompleted = true;
+
+            await this.userProgressRepo.Insert(userProgress)
+        }
+    }
+
+    async AddWatchDuration(videoId: string, duration: number, userId: string, checkOnTheUser: boolean = true): Promise<void> {
+        const video = await this.videosRepo.FindOne({ Id: videoId }, { Section: true })
+        if (checkOnTheUser) {
+            const isExist = await this.membersService.IsMemberExist(video.Section.SubTeamId, userId)
+            if (!isExist)
+                throw new NotFoundException("Video not found")
+        }
+
+        const isUserProgressExist = await this.userProgressRepo.FindOne({ UserId: userId, VideoId: video.Id });
+        if (isUserProgressExist) {
+            if (video.Duration && duration >= video.Duration) {
+                isUserProgressExist.WatchDuration = video.Duration
+                isUserProgressExist.IsCompleted = true
+            }
+            else {
+                isUserProgressExist.WatchDuration = duration;
+            }
+
+            await this.userProgressRepo.Update(isUserProgressExist.Id, isUserProgressExist);
+        } else {
+            const userExist = await this.userService.FindById(userId, true)
+            const userProgress = new UserProgress();
+            userProgress.UserId = userExist.Id;
+            userProgress.VideoId = video.Id;
+            if (video.Duration && duration >= video.Duration) {
+                userProgress.WatchDuration = video.Duration
+                userProgress.IsCompleted = true
+            }
+            else {
+                userProgress.WatchDuration = duration;
+            }
+
+            await this.userProgressRepo.Insert(userProgress)
+        }
     }
 }

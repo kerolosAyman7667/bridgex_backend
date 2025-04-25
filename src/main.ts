@@ -19,6 +19,10 @@ async function bootstrap() {
   })
   app.useGlobalInterceptors(new PostInterceptor())
 
+  app.use('/api/assets/learning/*', (req, res, next) => {
+    res.status(404).json(new ResponseType(HttpStatus.NOT_FOUND,"path not found"))
+  });
+
   app.useGlobalPipes(new ValidationPipe({
     transform:true,
     forbidNonWhitelisted:true,

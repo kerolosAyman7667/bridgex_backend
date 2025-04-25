@@ -22,6 +22,7 @@ import { SubTeamLogoFileOptions } from "src/Common/FileUpload/FileTypes/SubTeamL
 import { SubTeamImagesFileOptions } from "src/Common/FileUpload/FileTypes/SubTeamImages.file";
 import { SubTeamMembers } from "../../Models/SubTeamMembers.entity";
 import { CreateLearningPhaseDto } from "src/SubTeams/Dtos/LearningPhase/CreateLearningPhase.dto";
+import { LearningPhaseReturnDto } from "src/SubTeams/Dtos/LearningPhase/LearningPhaseReturn.dto";
 
 
 /**
@@ -51,6 +52,20 @@ export class SubTeamService implements ISubTeamsService {
         @Inject(ITeamsService)
         private readonly teamService: ITeamsService,
     ) {
+    }
+
+    async GetLearningPhase(userId:string,subTeamId: string): Promise<LearningPhaseReturnDto> {
+        const subTeamWithLearningPhase:SubTeams = await this.repo.Repo
+        .createQueryBuilder('subTeam')
+        .leftJoinAndSelect('subTeam.LearningPhaseSections', 'section')
+        .orderBy("section.Number")
+        .leftJoinAndSelect('section.Resources', 'resource')
+        .leftJoinAndSelect('section.Videos', 'video')
+        .leftJoinAndSelect('video.Progress', 'progress', 'progress.UserId = :userId', { userId })
+        .where('subTeam.Id = :subTeamId', { subTeamId })
+        .getOne();
+
+        return await this.mapper.mapAsync(subTeamWithLearningPhase,SubTeams,LearningPhaseReturnDto)
     }
 
     async UpdateLearningPhase(dto: CreateLearningPhaseDto, subTeamId: string, leaderId: string): Promise<void> {

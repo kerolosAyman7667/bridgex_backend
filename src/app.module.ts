@@ -13,12 +13,19 @@ import { CommunitiesModule } from './Communities/Communities.module';
 import { TeamsModule } from './Teams/Teams.module';
 import { AppController } from './App.controller';
 import { SubTeamsModule } from './SubTeams/SubTeams.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import {join} from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     AutomapperModule.forRoot({
       strategyInitializer: classes(),
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'files'),
+      exclude: ['/api/assets/learning/*'], 
+      serveRoot:"/api/assets"
     }),
     FileModule,
     LoggerModule,

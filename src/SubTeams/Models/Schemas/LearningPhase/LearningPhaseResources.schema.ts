@@ -29,7 +29,7 @@ export class LearningPhaseResourcesSchema extends Schema<LearningPhaseResources>
             relations: {
                 Section: {
                     type: "many-to-one",
-                    target: SubTeams.name,
+                    target: LearningPhaseSections.name,
                     joinColumn: { name: GetKey<LearningPhaseResources>("SectionId"),referencedColumnName:GetKey<LearningPhaseSections>("Id")}, 
                     inverseSide:GetKey<LearningPhaseSections>("Resources"),
                     onDelete: "RESTRICT",

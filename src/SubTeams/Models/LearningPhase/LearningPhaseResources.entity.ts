@@ -13,6 +13,8 @@ export class LearningPhaseResources extends EntityBase
     @AutoMap()
     SectionId!:string
 
+    AIAssetId:string
+
     @AutoMap(()=> LearningPhaseSections)
     Section?:LearningPhaseSections
 }

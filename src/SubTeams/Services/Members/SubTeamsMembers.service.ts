@@ -32,6 +32,16 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
     @InjectMapper()
     private readonly mapper: Mapper;
 
+    async IsMemberExist(subTeamId: string, userId: string): Promise<boolean> {
+        const member = await this.membersRepo.FindOne({SubTeamId:subTeamId,UserId:userId});
+        if(member)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     async Join(subTeamId: string, userId: string): Promise<JoinLinkDto> {
         const user:Users = await this.userService.FindOne({ Id: userId }, true, { CommunityLeaders: true, TeamActiveLeaders: true })
         const subTeam: SubTeams = await this.subTeamService.GetSubTeamById(subTeamId)

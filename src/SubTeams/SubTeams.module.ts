@@ -18,6 +18,8 @@ import { LearningPhaseResources } from "./Models/LearningPhase/LearningPhaseReso
 import { LearningPhaseSections } from "./Models/LearningPhase/LearningPhaseSections.entity";
 import { LearningPhaseVideos } from "./Models/LearningPhase/LearningPhaseVideos.entity";
 import { UserProgress } from "./Models/LearningPhase/UserProgress.entity";
+import { ILearningPhaseServiceProvider } from "./Services/LearningPhase/ILearningPhase.service";
+import { LearningPhaseController } from "./Controllers/LearningPhase.controller";
 
 @Module({
     imports:[
@@ -26,7 +28,7 @@ import { UserProgress } from "./Models/LearningPhase/UserProgress.entity";
        ]),
        UsersModule,TeamsModule
     ],
-    controllers:[SubTeamsController, SubTeamImagesGet, SubTeamMembersController],
-    providers:[ISubTeamsServiceProvider,ISubTeamsMembersServiceProvider,SubTeamsProfile],
+    controllers:[SubTeamsController, SubTeamImagesGet, SubTeamMembersController, LearningPhaseController],
+    providers:[ISubTeamsServiceProvider,ISubTeamsMembersServiceProvider,ILearningPhaseServiceProvider,SubTeamsProfile],
 })
 export class SubTeamsModule{}

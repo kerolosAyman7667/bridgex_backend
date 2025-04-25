@@ -1,7 +1,7 @@
 import { AutoMap } from "@automapper/classes";
 import { ApiProperty } from "@nestjs/swagger";
-import { LearningPhaseResources } from "src/SubTeams/Models/LearningPhase/LearningPhaseResources.entity";
-import { LearningPhaseVideos } from "src/SubTeams/Models/LearningPhase/LearningPhaseVideos.entity";
+import { LearningPhaseVideoDto } from "./LearningPhaseVideo.dto";
+import { LearningPhaseResourceDto } from "./LearningPhaseResourceDto.dto";
 
 export class LearningPhaseSectionDto
 {
@@ -18,8 +18,10 @@ export class LearningPhaseSectionDto
     Number:number
 
     @ApiProperty()
-    Videos:LearningPhaseVideos[] = []
+    @AutoMap(()=> LearningPhaseVideoDto)
+    Videos:LearningPhaseVideoDto[] = []
     
     @ApiProperty()
-    Resources:LearningPhaseResources[] = []
+    @AutoMap(()=> LearningPhaseResourceDto)
+    Resources:LearningPhaseResourceDto[] = []
 }
