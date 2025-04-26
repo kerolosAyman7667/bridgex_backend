@@ -292,7 +292,7 @@ export class LearningPhaseService implements ILearningPhaseService {
         }
         if (checkOnTheUser) {
             const isExist = await this.membersService.IsMemberExist(video.Section.SubTeamId, userId)
-            if (!isExist)
+            if (!isExist.IsMember && !isExist.IsLeader)
                 throw new NotFoundException("Video not found")
         }
 
@@ -319,7 +319,7 @@ export class LearningPhaseService implements ILearningPhaseService {
         }
         if (checkOnTheUser) {
             const isExist = await this.membersService.IsMemberExist(video.Section.SubTeamId, userId)
-            if (!isExist)
+            if (!isExist.IsMember && !isExist.IsLeader)
                 throw new NotFoundException("Video not found")
         }
 

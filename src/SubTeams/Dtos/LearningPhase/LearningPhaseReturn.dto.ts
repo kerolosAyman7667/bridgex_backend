@@ -15,7 +15,10 @@ export class LearningPhaseReturnDto
     @ApiProperty()
     CanModify:boolean = false
 
-    @AutoMap(()=> LearningPhaseSectionDto)
     @ApiProperty()
+    IsMember:boolean = true
+
+    @AutoMap(()=> LearningPhaseSectionDto)
+    @ApiProperty({ type: () => LearningPhaseSectionDto })
     Sections: LearningPhaseSectionDto[] = []
 }

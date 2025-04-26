@@ -17,11 +17,11 @@ export class LearningPhaseSectionDto
     @ApiProperty()
     Number:number
 
-    @ApiProperty()
+    @ApiProperty({ type: () => LearningPhaseVideoDto })
     @AutoMap(()=> LearningPhaseVideoDto)
     Videos:LearningPhaseVideoDto[] = []
     
-    @ApiProperty()
+    @ApiProperty({ type: () => LearningPhaseResourceDto })
     @AutoMap(()=> LearningPhaseResourceDto)
     Resources:LearningPhaseResourceDto[] = []
 }

@@ -13,6 +13,7 @@ import { MemberSearchDto } from "../../Dtos/SubTeamMembersDtos/MemberSearch.dto"
 import { FindOptionsOrder, FindOptionsWhere, ILike, IsNull, Not } from "typeorm";
 import { JoinLinkDto } from "../../Dtos/SubTeamMembersDtos/JoinLink.dto";
 import { Users } from "src/Users/Models/Users.entity";
+import { ITeamsService } from "src/Teams/Services/ITeams.service";
 
 //TODO make rule for the verify if the member IsHead
 /**
@@ -28,18 +29,36 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
 
     @Inject(UsersService)
     private readonly userService: UsersService;
-
+    
+    @Inject(ITeamsService)
+    private readonly teamService: ITeamsService
+        
     @InjectMapper()
     private readonly mapper: Mapper;
 
-    async IsMemberExist(subTeamId: string, userId: string): Promise<boolean> {
-        const member = await this.membersRepo.FindOne({SubTeamId:subTeamId,UserId:userId,JoinDate:Not(IsNull()),LeaveDate:IsNull()});
-        if(member)
+    async IsMemberExist(subTeamId: string, userId: string): Promise<{IsLeader:boolean,IsMember:boolean}> {
+        const dataReturn:{IsLeader:boolean,IsMember:boolean} = {IsLeader:false,IsMember:false};
+        const subTeam = await this.subTeamService.GetSubTeamById(subTeamId);
+
+        try
         {
-            return true;
+            await this.teamService.VerifyLeaderId(subTeam.TeamId,userId);
+            dataReturn.IsLeader = true;
+        }catch(ex)
+        {
+            const user = await this.membersRepo.FindOne({SubTeamId:subTeam.Id,UserId:userId,LeaveDate:IsNull(),JoinDate:Not(IsNull())});
+            if(user)
+            {
+                dataReturn.IsMember = true;
+                dataReturn.IsLeader = user.IsHead;
+            }
+            else
+            {
+                dataReturn.IsMember = false;
+            }
         }
 
-        return false;
+        return dataReturn;
     }
 
     async Join(subTeamId: string, userId: string): Promise<JoinLinkDto> {
@@ -81,6 +100,15 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         newMember.JoinDate = null
         newMember.IsHead = isHead
         newMember.JoinDate = joinDate
+
+        if(isHead)
+        {
+            const headsCount = await this.membersRepo.Repo.countBy({SubTeamId:subTeam.Id,IsHead:true});
+            if(headsCount >= 1)
+            {
+                throw new BadRequestException("Sub team can only has one head")
+            }
+        }
         
         if(joinLik instanceof JoinLinkDto)
         {
@@ -103,8 +131,14 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         if (!member) {
             throw new NotFoundException("User not found")
         }
-
+        
         if (!member.IsHead) {
+            const headsCount = await await this.membersRepo.Repo.countBy({SubTeamId:subTeamId,IsHead:true});
+            if(headsCount >= 1)
+            {
+                throw new BadRequestException("Sub team can only has one head")
+            }
+
             const user = await this.userService.FindOne({ Id: member.UserId }, true, { CommunityLeaders: true, TeamActiveLeaders: true })
             if (user.IsSuperAdmin) {
                 throw new BadRequestException("Super admin can't join")
@@ -126,10 +160,12 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         if (!member) {
             throw new NotFoundException("User not found")
         }
-        if(member.LeaveDate)
-        {
-            throw new BadRequestException("User already left")
-        }else if(member.JoinDate)
+        //why I searched with leave data is null at first already ?
+        // if(member.LeaveDate)
+        // {
+        //     throw new BadRequestException("User already left")
+        // }else 
+        if(member.JoinDate)
         {
             throw new ConflictException("User already accepted")
         }

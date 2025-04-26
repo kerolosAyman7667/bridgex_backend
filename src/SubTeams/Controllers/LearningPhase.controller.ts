@@ -1,5 +1,5 @@
 import { BadRequestException, Body, Controller, Delete, Get, Header, HttpStatus, Inject, NotFoundException, Param, Patch, Post, Req, Res, StreamableFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiBody, ApiParam } from "@nestjs/swagger";
 import { JWTGaurd } from "src/AuthModule/Gaurds/JWT.gaurd";
 import { SubTeamParamDecorator, SubTeamParamPipe, SubTeamParamWithSectionPipe } from "./SubTeamParam";
 import { ISubTeamsService } from "../Services/SubTeams/ISubTeams.service";
@@ -27,7 +27,6 @@ import { AddUserProgressDto } from "../Dtos/LearningPhase/AddUserProgress.dto";
 
 @ApiTags('subteams/learningphase')
 @Controller('communities/:communityId/teams/:teamId/subteams/:subTeamId/learningphase')
-@SubTeamParamDecorator(true)
 @UseGuards(JWTGaurd)
 @ApiBearerAuth()
 export class LearningPhaseController
@@ -46,6 +45,9 @@ export class LearningPhaseController
     private readonly fileService:IFileService
 
     @Get()
+    @ApiOperation({ summary: 'Get sub team learning phase' })
+    @ApiResponse({ status: 200, type: [LearningPhaseReturnDto] })
+    @SubTeamParamDecorator(true)
     async Get
     (
         @Param(new SubTeamParamPipe()) search:SubTeamSearchId,
@@ -54,7 +56,7 @@ export class LearningPhaseController
     {
         //verify Leaders 
         let canModify = false;
-        const isValid = await this.isValid(search.subTeamId,user.UserId);
+        const isValid = await this.memberService.IsMemberExist(search.subTeamId,user.UserId);
         if(isValid.IsLeader)
         {
             canModify = true
@@ -66,10 +68,16 @@ export class LearningPhaseController
 
         const learningPhase:LearningPhaseReturnDto = await this.subTeamService.GetLearningPhase(user.UserId,search.subTeamId);
         learningPhase.CanModify = canModify;
+        learningPhase.IsMember = isValid.IsMember
+
         return new ResponseType<LearningPhaseReturnDto>(HttpStatus.OK,"Learning phase successfully retrieved",learningPhase)
     }
 
     @Post()
+    @ApiOperation({ summary: 'update learning phase name and desc' })
+    @ApiResponse({ status: 201 })
+    @ApiBody({type:CreateLearningPhaseDto})
+    @SubTeamParamDecorator(true)
     async UpdateLearningData
     (
         @Param(new SubTeamParamPipe()) search:SubTeamSearchId,
@@ -82,6 +90,10 @@ export class LearningPhaseController
     }
 
     @Post("section")
+    @ApiOperation({ summary: 'add section to learning phase' })
+    @ApiResponse({ status: 201 ,type:LearningPhaseSectionDto})
+    @ApiBody({type:CreateSectionDto})
+    @SubTeamParamDecorator(true)
     async AddSection
     (
         @Body() dto:CreateSectionDto,
@@ -94,6 +106,11 @@ export class LearningPhaseController
     }
 
     @Patch("section/:sectionId")
+    @ApiOperation({ summary: 'update section name' })
+    @ApiResponse({ status: 200 })
+    @ApiBody({type:CreateSectionDto})
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
     async UpdateSection
     (
         @Body() dto:CreateSectionDto,
@@ -106,9 +123,12 @@ export class LearningPhaseController
     }
 
     @Delete("section/:sectionId")
+    @ApiOperation({ summary: 'delete section' })
+    @ApiResponse({ status: 200 })
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
     async DeleteSection
     (
-        @Body() dto:CreateSectionDto,
         @Param(new SubTeamParamWithSectionPipe()) search:SubTeamSearchIdWithSection,
         @CurrentUserDecorator() user:TokenPayLoad
     ) : Promise<ResponseType<void>>
@@ -120,6 +140,11 @@ export class LearningPhaseController
 
     @Post("section/:sectionId/video")
     @UseInterceptors(FilesInterceptor("file", 1))
+    @ApiOperation({ summary: 'upload video to section !!!! PLEASE SEE POSTMAN FOR THE CORRECT BODY' })
+    @ApiResponse({ status: 201,type:LearningPhaseVideoDto })
+    @ApiBody({type:CreateVideoDto})
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
     async UploadVideo(
         @UploadedFiles() files: Express.Multer.File[],
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSection,
@@ -135,6 +160,12 @@ export class LearningPhaseController
     }
 
     @Patch("section/:sectionId/video/:videoId")
+    @ApiOperation({ summary: 'update video body' })
+    @ApiResponse({ status: 200 })
+    @ApiBody({type:CreateVideoDto})
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
+    @ApiParam({name:"videoId" , type:"string"})
     async UpdateVideo
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
@@ -148,6 +179,12 @@ export class LearningPhaseController
     }
 
     @Post("section/:sectionId/video/:videoId/progress")
+    @ApiOperation({ summary: 'Add user progress while user watching video' })
+    @ApiResponse({ status: 200 })
+    @ApiBody({type:AddUserProgressDto})
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
+    @ApiParam({name:"videoId" , type:"string"})
     async ProgressVideo
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
@@ -161,6 +198,11 @@ export class LearningPhaseController
     }
 
     @Post("section/:sectionId/video/:videoId/complete")
+    @ApiOperation({ summary: 'user completed the video' })
+    @ApiResponse({ status: 200 })
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
+    @ApiParam({name:"videoId" , type:"string"})
     async CompleteVideo
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
@@ -173,6 +215,11 @@ export class LearningPhaseController
     }
 
     @Delete("section/:sectionId/video/:videoId")
+    @ApiOperation({ summary: 'delete video' })
+    @ApiResponse({ status: 200 })
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
+    @ApiParam({name:"videoId" , type:"string"})
     async DeleteVideo
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
@@ -186,6 +233,11 @@ export class LearningPhaseController
 
     @Post("section/:sectionId/resource")
     @UseInterceptors(FilesInterceptor("file", 1))
+    @ApiOperation({ summary: 'upload resource to section !!!! PLEASE SEE POSTMAN FOR THE CORRECT BODY' })
+    @ApiResponse({ status: 201,type:LearningPhaseResourceDto })
+    @ApiBody({type:CreateResourceDto})
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
     async UploadResources(
         @UploadedFiles() files: Express.Multer.File[],
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSection,
@@ -201,6 +253,12 @@ export class LearningPhaseController
     }
 
     @Patch("section/:sectionId/resource/:resourceId")
+    @ApiOperation({ summary: 'update resource body' })
+    @ApiResponse({ status: 200 })
+    @ApiBody({type:CreateResourceDto})
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
+    @ApiParam({name:"resourceId" , type:"string"})
     async UpdateResources
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionResource,
@@ -214,6 +272,11 @@ export class LearningPhaseController
     }
 
     @Delete("section/:sectionId/resource/:resourceId")
+    @ApiOperation({ summary: 'delete resource' })
+    @ApiResponse({ status: 200 })
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
+    @ApiParam({name:"resourceId" , type:"string"})
     async DeleteResource
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionResource,
@@ -226,7 +289,10 @@ export class LearningPhaseController
     }
 
     @Get('section/:sectionId/video/:videoId')
-    @Header('Content-Type', 'application/octet-stream')
+    @ApiOperation({ summary: 'Get video' })
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
+    @ApiParam({name:"videoId" , type:"string"})
     async handleGetVideo(
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
         @Param("videoId") videoId:string,
@@ -235,7 +301,7 @@ export class LearningPhaseController
         @Res() res: any,
     ): Promise<void> {
         const video = await this.learningPhaseService.GetVideo(videoId,searchId);
-        const isMemberExits = await this.isValid(searchId.subTeamId,"a46e32c7cd7160ec25c2f0b7a6decf39");
+        const isMemberExits = await this.memberService.IsMemberExist(searchId.subTeamId,user.UserId);
         if(!isMemberExits.IsLeader && !isMemberExits.IsMember)
         {
             throw new NotFoundException("Resource not found")
@@ -316,32 +382,22 @@ export class LearningPhaseController
 
     @Get('section/:sectionId/resource/:resourceId')
     @Header('Content-Type', 'application/octet-stream')
+    @ApiOperation({ summary: 'Get Resource' })
+    @ApiResponse({status:200,type:StreamableFile})
+    @SubTeamParamDecorator(true)
+    @ApiParam({name:"sectionId" , type:"string"})
+    @ApiParam({name:"resourceId" , type:"string"})
     async handleGetResource(
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionResource,
         @Param("resourceId") resourceId:string,
         @CurrentUserDecorator() user:TokenPayLoad
     ): Promise<StreamableFile> {
         const resource = await this.learningPhaseService.GetResource(resourceId,searchId);
-        const isMemberExits = await this.isValid(searchId.subTeamId,user.UserId);
+        const isMemberExits = await this.memberService.IsMemberExist(searchId.subTeamId,user.UserId);
         if(!isMemberExits.IsLeader && !isMemberExits.IsMember)
         {
             throw new NotFoundException("Resource not found")
         }
         return await this.fileService.Get(resource.File, LearningPhaseResourcesFileOptions)
-    }
-
-    private async isValid(subTeamId:string,UserId:string) : Promise<{IsLeader:boolean,IsMember:boolean}>
-    {
-        const dataReturn:{IsLeader:boolean,IsMember:boolean} = {IsLeader:false,IsMember:false};
-        try
-        {
-            await this.subTeamService.VerifyLeaderId(subTeamId,UserId)
-            dataReturn.IsLeader = true
-        }catch(ex)
-        {
-            dataReturn.IsMember = await this.memberService.IsMemberExist(subTeamId,UserId)
-        }
-
-        return dataReturn;
     }
 }

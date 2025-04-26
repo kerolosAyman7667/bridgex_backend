@@ -84,10 +84,10 @@ export interface ISubTeamsMembersService {
     /**
      * @param {string} subTeamId - The ID of the team
      * @param userId 
-     * @returns {Promise<boolean>} is the user exist in the sub team or not
+     * @returns { Promise<{IsLeader:boolean,IsMember:boolean}>} is the user exist in the sub team or not
      */
-    IsMemberExist(subTeamId: string, userId: string) : Promise<boolean>
-} 
+    IsMemberExist(subTeamId: string, userId: string) : Promise<{IsLeader:boolean,IsMember:boolean}>
+}
 
 export const ISubTeamsMembersService = Symbol("ISubTeamsMembersService")
 
