@@ -112,31 +112,39 @@ export class SubTeamService implements ISubTeamsService {
         return await this.mapper.mapAsync(newSubTeam, SubTeams, SubTeamCardDto)
     }
 
-    async GetSubTeam(dto: SubTeamSearchId): Promise<SubTeamDto> {
-     const subTeam =  await this.repo.Repo.createQueryBuilder("subTeam")
-                    .leftJoinAndSelect(
-                        "subTeam.Members", 
-                        "member", 
-                        "member.IsHead = :isHead AND member.LeaveDate IS NULL", 
-                        { isHead: true }
-                    )
-                    .leftJoinAndSelect("subTeam.Images", "images")
-                    .leftJoinAndSelect("subTeam.MediaLinks", "mediaLinks")
-                    .leftJoinAndSelect("subTeam.Channels", "channels")
-                    .leftJoinAndSelect("member.User", "user")
-                    .where({
-                        CommunityId: dto.communityId,
-                        TeamId: dto.teamId,
-                        Id: dto.subTeamId
-                    })
-                    .getOne()
+    async GetSubTeam(dto: SubTeamSearchId): Promise<{dto:SubTeamDto,JoinLink:string}> {
+        const subTeam =  await this.repo.FindOne({
+            CommunityId: dto.communityId,
+            TeamId: dto.teamId,
+            Id: dto.subTeamId
+        },{
+            Images:true,MediaLinks:true,Channels:true,Members:{User:true}
+        })
+    //  const subTeam =  await this.repo.Repo.createQueryBuilder("subTeam")
+    //                 .leftJoinAndSelect(
+    //                     "subTeam.Members", 
+    //                     "member", 
+    //                     "member.IsHead = :isHead AND member.LeaveDate IS NULL", 
+    //                     { isHead: true }
+    //                 )
+    //                 .leftJoinAndSelect("subTeam.Images", "images")
+    //                 .leftJoinAndSelect("subTeam.MediaLinks", "mediaLinks")
+    //                 .leftJoinAndSelect("subTeam.Channels", "channels")
+    //                 .leftJoinAndSelect("member.User", "user")
+    //                 .where({
+    //                     CommunityId: dto.communityId,
+    //                     TeamId: dto.teamId,
+    //                     Id: dto.subTeamId
+    //                 })
+    //                 .getOne()
 
 
         if (subTeam === null) {
             throw new NotFoundException("Sub team Not Found")
         }
 
-        return await this.mapper.mapAsync(subTeam, SubTeams, SubTeamDto)
+        const returnDto = await this.mapper.mapAsync(subTeam, SubTeams, SubTeamDto)
+        return {dto:returnDto,JoinLink:subTeam.JoinLink}
     }
 
     async GetSubTeamById(id: string): Promise<SubTeams> {
@@ -155,7 +163,7 @@ export class SubTeamService implements ISubTeamsService {
     async GetSubTeams(communityId: string, teamId: string): Promise<SubTeamCardDto[]> {
         const team = await this.teamService.GetTeam(teamId, communityId);
 
-        const subTeams: SubTeams[] = await this.repo.FindAll({ CommunityId: communityId, TeamId: team.Id })
+        const subTeams: SubTeams[] = await this.repo.FindAll({ CommunityId: communityId, TeamId: team.Id },{Members:true})
 
         return await this.mapper.mapArrayAsync(subTeams, SubTeams, SubTeamCardDto)
     }

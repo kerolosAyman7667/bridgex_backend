@@ -18,6 +18,7 @@ import { ImagesDto } from "src/Common/DTOs/Images.dto";
 import { ImageCreateDto } from "src/Common/DTOs/ImageCreate.dto";
 import { SubTeamUpdateDto } from "../Dtos/SubTeamUpdate.dto";
 import { OptionalGuard } from "src/AuthModule/Gaurds/OptionalGuard";
+import { ISubTeamsMembersService } from "../Services/Members/ISubTeamMembers.service";
 
 @ApiTags('sub teams')
 @Controller('communities/:communityId/teams/:teamId/subteams')
@@ -25,6 +26,9 @@ export class SubTeamsController {
 
     @Inject(ISubTeamsService)
     private readonly service: ISubTeamsService
+
+    @Inject(ISubTeamsMembersService)
+    private readonly memberService: ISubTeamsMembersService
 
     /**
      * Creates a new sub Team in the community
@@ -75,23 +79,22 @@ export class SubTeamsController {
         @Param(new SubTeamParamPipe()) searchId: SubTeamSearchId,
         @CurrentUserDecorator() payload: TokenPayLoad
     ): Promise<ResponseType<SubTeamWithCanModifyDto>> {
-        const c = await this.service.GetSubTeam(searchId) as SubTeamWithCanModifyDto;
-        try
+        const c = await this.service.GetSubTeam(searchId);
+        const returnDto = c.dto as SubTeamWithCanModifyDto
+        if(!payload)
         {
-            if(!payload)
+            returnDto.CanModify = false
+        }else
+        {
+            const subTeam = await this.memberService.IsMemberExist(searchId.subTeamId,payload.UserId)
+            if(subTeam.IsLeader)
             {
-                c.CanModify = false
-            }else
-            {
-                const subTeam = await this.service.VerifyLeaderId(searchId.subTeamId,payload.UserId)
-                c.CanModify = true
-                c.JoinLink = subTeam.JoinLink
+                returnDto.CanModify = true
+                returnDto.JoinLink = returnDto.JoinLink
             }
-        }catch(ex)
-        {
-            c.CanModify = false
+            returnDto.IsMember = subTeam.IsMember
         }
-        return new ResponseType<SubTeamWithCanModifyDto>(200, "Get sub team successfully", c)
+        return new ResponseType<SubTeamWithCanModifyDto>(200, "Get sub team successfully", returnDto)
     }
 
     /**

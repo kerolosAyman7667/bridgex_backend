@@ -20,5 +20,6 @@ export class SubTeamCardDto
     DescShort:string
 
     @ApiProperty()
+    @AutoMap()
     MembersCount:number = 0
 }

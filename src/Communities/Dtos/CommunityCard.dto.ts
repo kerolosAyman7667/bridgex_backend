@@ -21,6 +21,7 @@ export class CommunityCardDto
     DescShort:string
 
     @ApiProperty()
+    @AutoMap()
     MembersCount:number = 0
 
     @ApiProperty()

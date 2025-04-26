@@ -17,6 +17,7 @@ import { use } from "passport";
 import { VerificationCacheKeys } from "src/AuthModule/Dtos/VerificationType";
 import { VerifyError } from "../Errors/VerifyError";
 import { BadValidationException, ClassValidatorExceptionDto } from "src/Common/ClassValidatorException.dto";
+import { Not } from "typeorm";
 
 @Injectable({scope:Scope.REQUEST})
 export class UsersService extends GenericService<Users>
@@ -76,14 +77,21 @@ export class UsersService extends GenericService<Users>
      * @throws NotFoundException - If user is not found
      */
     async Update(id: string, updatedData: Partial<Users>): Promise<Users> {
-        const existingStudentId:Users = await this.FindOne({
-            StudentId: updatedData.StudentId
-        }, false);
-    
-        if (existingStudentId && existingStudentId.Id !== id) {
-            throw new BadValidationException(new ClassValidatorExceptionDto<Users>("Student Id already exists","StudentId"),HttpStatus.CONFLICT)
+        const user = await this.FindById(id,true);
+
+        if(updatedData.StudentId)
+        {
+            const existingStudentId:Users = await this.FindOne({
+                StudentId: updatedData.StudentId,
+                Id:Not(user.Id)
+            }, false);
+
+            if (existingStudentId) {
+                throw new BadValidationException(new ClassValidatorExceptionDto<Users>("Student Id already exists","StudentId"),HttpStatus.CONFLICT)
+            }
         }
-        return await super.Update(id,updatedData)
+    
+        return await super.Update(user.Id,updatedData)
     }
 
     /**

@@ -103,7 +103,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
 
         if(isHead)
         {
-            const headsCount = await this.membersRepo.Repo.countBy({SubTeamId:subTeam.Id,IsHead:true});
+            const headsCount = await this.membersRepo.Repo.countBy({SubTeamId:subTeam.Id,IsHead:true,LeaveDate:IsNull()});
             if(headsCount >= 1)
             {
                 throw new BadRequestException("Sub team can only has one head")
@@ -133,7 +133,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         }
         
         if (!member.IsHead) {
-            const headsCount = await await this.membersRepo.Repo.countBy({SubTeamId:subTeamId,IsHead:true});
+            const headsCount = await this.membersRepo.Repo.countBy({SubTeamId:subTeamId,IsHead:true,LeaveDate:IsNull()});
             if(headsCount >= 1)
             {
                 throw new BadRequestException("Sub team can only has one head")

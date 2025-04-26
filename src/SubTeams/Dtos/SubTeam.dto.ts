@@ -30,6 +30,9 @@ export class SubTeamDto {
     @ApiProperty()
     Vision: string
 
+    @ApiProperty()
+    IsMember:boolean = false
+    
     @AutoMap()
     @ApiProperty()
     Logo: string = SubTeamsConstants.DefaultLogo
@@ -53,6 +56,10 @@ export class SubTeamDto {
     @AutoMap()
     @ApiProperty()
     CreatedAt: Date
+
+    @ApiProperty()
+    @AutoMap()
+    MembersCount:number = 0
 }
 
 
