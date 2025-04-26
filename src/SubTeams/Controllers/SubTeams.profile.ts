@@ -45,7 +45,13 @@ export class SubTeamsProfile extends AutomapperProfile {
         createMap(mapper, SubTeamsMedia, MediaCreateDto);
       createMap(mapper, SubTeamMembers, MemberReturnDto);
       createMap(mapper, LearningPhaseResources, LearningPhaseResourceDto);
-      createMap(mapper, LearningPhaseVideos, LearningPhaseVideoDto);
+      createMap(mapper, LearningPhaseVideos, LearningPhaseVideoDto, forMember(
+        (destination: LearningPhaseVideoDto) => destination.IsCompleted,
+        mapFrom((source: LearningPhaseVideos) => source?.Progress?.length > 0 ? source.Progress[0].IsCompleted : false)
+      ), forMember(
+        (destination: LearningPhaseVideoDto) => destination.WatchedDuration,
+        mapFrom((source: LearningPhaseVideos) => source?.Progress?.length > 0 ? source.Progress[0].WatchDuration : 0)
+      ));
 
       createMap(mapper, SubTeams, LearningPhaseReturnDto, forMember(
         (destination: LearningPhaseReturnDto) => destination.Sections,
