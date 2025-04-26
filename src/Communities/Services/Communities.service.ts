@@ -85,7 +85,7 @@ export class CommunitiesService implements ICommunitiesService {
         const community = await this.repo.FindById(id,{
             MediaLinks: true,
             Images: true,
-            Teams:{Leader:true},
+            Teams:{Leader:true,SubTeams:{Members:true}},
             Leader:true,
             SubTeams:{Members:true},
         })

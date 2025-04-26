@@ -39,7 +39,7 @@ export class SubTeamsProfile extends AutomapperProfile {
         ),
         createMap(mapper, SubTeams, SubTeamDto, forMember(
           (destination: SubTeamDto) => destination.Leaders,
-          mapWith(MemberReturnDto, SubTeamMembers, src => src.Members)
+          mapWith(MemberReturnDto, SubTeamMembers, src => src.Members.filter(x=> x.IsHead))
         )
         ),
         createMap(mapper, SubTeamsMedia, MediaCreateDto);

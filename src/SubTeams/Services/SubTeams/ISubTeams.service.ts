@@ -30,7 +30,7 @@ export interface ISubTeamsService extends IVerifyLeader<SubTeams> {
      * @returns {Promise<SubTeamDto>} SubTeamDto containing the sub team details
      * @throws {NotFoundException} if sub team is not found or if user is not the community/team leader
      */
-    GetSubTeam(dto: SubTeamSearchId): Promise<SubTeamDto>;
+    GetSubTeam(dto: SubTeamSearchId): Promise<{dto:SubTeamDto,JoinLink:string}>;
 
     
     /**

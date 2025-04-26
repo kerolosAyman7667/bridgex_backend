@@ -36,6 +36,10 @@ export class TeamDto {
     @ApiProperty()
     Logo: string = TeamsConstants.DefaultLogo
 
+    @ApiProperty()
+    @AutoMap()
+    MembersCount:number = 0
+    
     @AutoMap(() => [ImagesDto])
     @ApiProperty({type:[ImagesDto]})
     Images: ImagesDto[] = []

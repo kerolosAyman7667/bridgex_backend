@@ -64,4 +64,15 @@ export class SubTeams extends EntityBase {
 
     @AutoMap(() => [LearningPhaseSections])
     LearningPhaseSections?: LearningPhaseSections[]
+
+    @AutoMap()
+    get MembersCount() : number
+    {
+        let count = 0;
+        if(this.Members)
+        {
+            count = this.Members?.filter(x=> x.JoinDate && !x.LeaveDate).length;
+        }
+        return count;
+    }
 }
