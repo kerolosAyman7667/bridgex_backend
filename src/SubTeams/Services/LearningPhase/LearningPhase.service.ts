@@ -21,6 +21,8 @@ import { ISubTeamsMembersService } from "../Members/ISubTeamMembers.service";
 import { UsersService } from "src/Users/Services/Users.service";
 import { GetKey } from "src/Common/GetKeyFrom";
 import { join } from "path";
+import { AIUrlService } from "src/AIModule/AIUrl.service";
+import { CreateAssetResponseDto } from "src/AIModule/Dtos/CreateAssetResponse.dto";
 
 export class LearningPhaseService implements ILearningPhaseService {
     @Inject(ISubTeamsService)
@@ -44,7 +46,12 @@ export class LearningPhaseService implements ILearningPhaseService {
     @Inject(IFileService)
     private readonly fileService: IFileService;
 
+    @Inject(UsersService)
     private readonly userService: UsersService;
+
+    @Inject(AIUrlService)
+    private readonly aiService:AIUrlService
+
 
     async GetVideo(videoId: string, searchIds: SubTeamSearchIdWithSection): Promise<LearningPhaseVideoDto> {
         const video = await this.videosRepo.FindOne({ Id: videoId, SectionId: searchIds.sectionId, Section: { SubTeamId: searchIds.subTeamId } }, { Section: true });
@@ -124,12 +131,17 @@ export class LearningPhaseService implements ILearningPhaseService {
     async DeleteSection(searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<void> {
         const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
         const section = await this.sectionRepo.FindOne({ SubTeamId: subTeam.Id, Id: searchIds.sectionId }, { Resources: true, Videos: true })
-        for (const resource of section.Resources) {
+        if(!section)
+        {
+            throw new NotFoundException("Section not found")
+        }
+        for (const resource of section?.Resources) {
+            await this.aiService.DeleteAsset(subTeam.KnowledgeBaseId,resource.AIAssetId,true);
             await this.fileService.Remove(resource.File, LearningPhaseResourcesFileOptions, false);
             await this.resourcesRepo.Delete(resource.Id);
         }
 
-        for (const video of section.Videos) {
+        for (const video of section?.Videos) {
             await this.fileService.Remove(video.File, LearningPhaseVideosFileOptions, false);
             await this.videosRepo.Delete(video.Id);
         }
@@ -140,6 +152,11 @@ export class LearningPhaseService implements ILearningPhaseService {
     async UploadVideo(dto: CreateVideoDto, file: Express.Multer.File, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<LearningPhaseVideoDto> {
         const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
         const section = await this.sectionRepo.FindOne({ Id: searchIds.sectionId, SubTeamId: subTeam.Id });
+        if(!section)
+        {
+            throw new NotFoundException("Section not found")
+        }
+
         const fileUpload = await this.fileService.Upload
             (
                 [file],
@@ -195,7 +212,10 @@ export class LearningPhaseService implements ILearningPhaseService {
     async UploadResource(dto: CreateResourceDto, file: Express.Multer.File, searchIds: SubTeamSearchIdWithSection, leaderId: string): Promise<LearningPhaseResourceDto> {
         const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
         const section = await this.sectionRepo.FindOne({ Id: searchIds.sectionId, SubTeamId: subTeam.Id });
-
+        if(!section)
+        {
+            throw new NotFoundException("Section not found")
+        }
         const fileUpload = await this.fileService.Upload
             (
                 [file],
@@ -206,6 +226,30 @@ export class LearningPhaseService implements ILearningPhaseService {
         resource.Name = dto.Name;
         resource.File = `${LearningPhaseResourcesFileOptions.Dest}${fileUpload[0].FileName}`
         resource.SectionId = section.Id;
+
+        this.aiService.AddAsset(subTeam.KnowledgeBaseId,fileUpload[0].FilePath).then(async (value)=>{
+            try
+            {
+                const addedResource = await this.resourcesRepo.FindById(resource.Id);
+                addedResource.AIAssetId = value.asset_id;
+                this.resourcesRepo.Update(resource.Id,addedResource)
+            }catch(ex)
+            {
+                console.log(ex);
+            }
+        }).catch((ex)=>{
+            console.log(ex);
+        })
+
+        // try
+        // {
+        //     const aiData:CreateAssetResponseDto = await ;
+        //     resource.AIAssetId = aiData.asset_id;
+        // }catch(ex)
+        // {
+        //     this.fileService.Remove(fileUpload[0].FilePath,LearningPhaseResourcesFileOptions,true);
+        //     throw ex;
+        // }
 
         await this.resourcesRepo.Insert(resource)
 
@@ -235,12 +279,17 @@ export class LearningPhaseService implements ILearningPhaseService {
             throw new NotFoundException("Resource is not found");
         }
 
+        await this.aiService.DeleteAsset(subTeam.KnowledgeBaseId,resource.AIAssetId,true);
         await this.fileService.Remove(resource.File, LearningPhaseResourcesFileOptions, false)
         await this.resourcesRepo.Delete(resource.Id)
     }
 
-    async CompleteVideo(videoId: string, userId: string, checkOnTheUser: boolean = true): Promise<void> {
-        const video = await this.videosRepo.FindOne({ Id: videoId }, { Section: true })
+    async CompleteVideo(videoId:string,userId:string,searchIds:SubTeamSearchIdWithSection,checkOnTheUser?:boolean) : Promise<void>    {
+        const video = await this.videosRepo.FindOne({ Id: videoId,SectionId:searchIds.sectionId,Section:{SubTeamId:searchIds.subTeamId} }, { Section: true })
+        if(!video)
+        {
+            throw new NotFoundException("Video not found")
+        }
         if (checkOnTheUser) {
             const isExist = await this.membersService.IsMemberExist(video.Section.SubTeamId, userId)
             if (!isExist)
@@ -262,8 +311,12 @@ export class LearningPhaseService implements ILearningPhaseService {
         }
     }
 
-    async AddWatchDuration(videoId: string, duration: number, userId: string, checkOnTheUser: boolean = true): Promise<void> {
-        const video = await this.videosRepo.FindOne({ Id: videoId }, { Section: true })
+    async AddWatchDuration(videoId:string,userId:string,duration:number,searchIds:SubTeamSearchIdWithSection,checkOnTheUser?:boolean) : Promise<void>{
+        const video = await this.videosRepo.FindOne({ Id: videoId,SectionId:searchIds.sectionId,Section:{SubTeamId:searchIds.subTeamId} }, { Section: true })
+        if(!video)
+        {
+            throw new NotFoundException("Video not found")
+        }
         if (checkOnTheUser) {
             const isExist = await this.membersService.IsMemberExist(video.Section.SubTeamId, userId)
             if (!isExist)
@@ -272,11 +325,15 @@ export class LearningPhaseService implements ILearningPhaseService {
 
         const isUserProgressExist = await this.userProgressRepo.FindOne({ UserId: userId, VideoId: video.Id });
         if (isUserProgressExist) {
-            if (video.Duration && duration >= video.Duration) {
+            if (video.Duration && duration >= (video.Duration - 30)) {
                 isUserProgressExist.WatchDuration = video.Duration
                 isUserProgressExist.IsCompleted = true
             }
-            else {
+            else if(isUserProgressExist.WatchDuration > duration)
+            {
+                return;
+            }else
+            {
                 isUserProgressExist.WatchDuration = duration;
             }
 

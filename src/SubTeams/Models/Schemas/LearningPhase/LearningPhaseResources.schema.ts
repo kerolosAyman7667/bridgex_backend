@@ -25,6 +25,11 @@ export class LearningPhaseResourcesSchema extends Schema<LearningPhaseResources>
                     length: 500,
                     nullable: false,
                 },
+                AIAssetId:{
+                    type:"varchar",
+                    length: 24,
+                    nullable: true,
+                },
             },
             relations: {
                 Section: {

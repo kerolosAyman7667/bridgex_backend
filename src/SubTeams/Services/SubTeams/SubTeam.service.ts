@@ -23,6 +23,10 @@ import { SubTeamImagesFileOptions } from "src/Common/FileUpload/FileTypes/SubTea
 import { SubTeamMembers } from "../../Models/SubTeamMembers.entity";
 import { CreateLearningPhaseDto } from "src/SubTeams/Dtos/LearningPhase/CreateLearningPhase.dto";
 import { LearningPhaseReturnDto } from "src/SubTeams/Dtos/LearningPhase/LearningPhaseReturn.dto";
+import { HttpService } from "@nestjs/axios";
+import { lastValueFrom } from "rxjs";
+import { CreateKnowledgeBaseDto, CreateKnowledgeBaseResponseDto } from "src/AIModule/Dtos/CreateKnowledgeBase.dto";
+import { AIUrlService } from "src/AIModule/AIUrl.service";
 
 
 /**
@@ -51,6 +55,8 @@ export class SubTeamService implements ISubTeamsService {
 
         @Inject(ITeamsService)
         private readonly teamService: ITeamsService,
+
+        private readonly aiService:AIUrlService
     ) {
     }
 
@@ -92,8 +98,17 @@ export class SubTeamService implements ISubTeamsService {
         newSubTeam.JoinLink = dataToInsert.JoinLink
         newSubTeam.LearningPhaseTitle = "Learning Phase"
         
-        await this.repo.Insert(newSubTeam);
+        const aiData:CreateKnowledgeBaseResponseDto = await this.aiService.AddKnowledgeBase(new CreateKnowledgeBaseDto(`${dataToInsert.Name}_${team.Name}_${team.Community.Name}`));
+        newSubTeam.KnowledgeBaseId = aiData.knowledge_base_id
 
+        try
+        {
+            await this.repo.Insert(newSubTeam);
+        }catch(ex)
+        {
+            this.aiService.DeleteKnowledgeBase(newSubTeam.KnowledgeBaseId)
+            throw ex;
+        }
         return await this.mapper.mapAsync(newSubTeam, SubTeams, SubTeamCardDto)
     }
 

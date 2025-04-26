@@ -65,6 +65,11 @@ export class SubTeamsSchema extends Schema<SubTeams> {
                     length: 325,
                     nullable: true,
                 },
+                KnowledgeBaseId:{
+                    type:"varchar",
+                    length: 24,
+                    nullable: true,
+                },
             },
             relations: {
                 Community: {

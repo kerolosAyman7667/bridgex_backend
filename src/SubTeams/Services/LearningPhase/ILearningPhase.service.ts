@@ -37,9 +37,9 @@ export interface ILearningPhaseService
     DeleteResources(resourceId:string,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<void>
     //#endregion "Resource"
 
-    CompleteVideo(videoId:string,userId:string,checkOnTheUser?:boolean) : Promise<void>
+    CompleteVideo(videoId:string,userId:string,searchIds:SubTeamSearchIdWithSection,checkOnTheUser?:boolean) : Promise<void>
 
-    AddWatchDuration(videoId:string,duration:number,userId:string,checkOnTheUser?:boolean) : Promise<void>
+    AddWatchDuration(videoId:string,userId:string,duration:number,searchIds:SubTeamSearchIdWithSection,checkOnTheUser?:boolean) : Promise<void>
 }
 
 export const ILearningPhaseService = Symbol("ILearningPhaseService")

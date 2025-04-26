@@ -23,6 +23,7 @@ import { LearningPhaseResourcesFileOptions } from "src/Common/FileUpload/FileTyp
 import { createReadStream, promises } from "fs";
 import { join } from "path";
 import { VideosFileType } from "src/Common/FileUpload/FileTypes/Types/Videos.filetypes";
+import { AddUserProgressDto } from "../Dtos/LearningPhase/AddUserProgress.dto";
 
 @ApiTags('subteams/learningphase')
 @Controller('communities/:communityId/teams/:teamId/subteams/:subTeamId/learningphase')
@@ -104,6 +105,19 @@ export class LearningPhaseController
         return new ResponseType<void>(HttpStatus.OK,"updated section successfully")
     }
 
+    @Delete("section/:sectionId")
+    async DeleteSection
+    (
+        @Body() dto:CreateSectionDto,
+        @Param(new SubTeamParamWithSectionPipe()) search:SubTeamSearchIdWithSection,
+        @CurrentUserDecorator() user:TokenPayLoad
+    ) : Promise<ResponseType<void>>
+    {
+        await this.learningPhaseService.DeleteSection(search,user.UserId)
+        return new ResponseType<void>(HttpStatus.OK,"delete section successfully")
+    }
+
+
     @Post("section/:sectionId/video")
     @UseInterceptors(FilesInterceptor("file", 1))
     async UploadVideo(
@@ -127,10 +141,35 @@ export class LearningPhaseController
         @Param("videoId") videoId:string,
         @Body() dto:CreateVideoDto,
         @CurrentUserDecorator() user:TokenPayLoad
-    )
+    ): Promise<ResponseType<void>>
     {
         await this.learningPhaseService.UpdateVideo(dto,videoId,searchId,user.UserId);
-        return new ResponseType<LearningPhaseVideoDto>(HttpStatus.OK,"updated video successfully")
+        return new ResponseType<void>(HttpStatus.OK,"updated video successfully")
+    }
+
+    @Post("section/:sectionId/video/:videoId/progress")
+    async ProgressVideo
+    (
+        @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
+        @Param("videoId") videoId:string,
+        @Body() data:AddUserProgressDto,
+        @CurrentUserDecorator() user:TokenPayLoad
+    ) : Promise<ResponseType<void>>
+    {
+        await this.learningPhaseService.AddWatchDuration(videoId,user.UserId,data.Duration,searchId,true);
+        return new ResponseType<void>(HttpStatus.OK,"updated successfully")
+    }
+
+    @Post("section/:sectionId/video/:videoId/complete")
+    async CompleteVideo
+    (
+        @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
+        @Param("videoId") videoId:string,
+        @CurrentUserDecorator() user:TokenPayLoad
+    ) : Promise<ResponseType<void>>
+    {
+        await this.learningPhaseService.CompleteVideo(videoId,user.UserId,searchId,true);
+        return new ResponseType<void>(HttpStatus.OK,"Completed successfully")
     }
 
     @Delete("section/:sectionId/video/:videoId")
@@ -139,10 +178,10 @@ export class LearningPhaseController
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
         @Param("videoId") videoId:string,
         @CurrentUserDecorator() user:TokenPayLoad
-    )
+    ): Promise<ResponseType<void>>
     {
         await this.learningPhaseService.DeleteVideo(videoId,searchId,user.UserId);
-        return new ResponseType<LearningPhaseVideoDto>(HttpStatus.OK,"deleted video successfully")
+        return new ResponseType<void>(HttpStatus.OK,"deleted video successfully")
     }
 
     @Post("section/:sectionId/resource")
@@ -168,10 +207,10 @@ export class LearningPhaseController
         @Param("resourceId") resourceId:string,
         @Body() dto:CreateResourceDto,
         @CurrentUserDecorator() user:TokenPayLoad
-    )
+    ): Promise<ResponseType<void>>
     {
         await this.learningPhaseService.UpdateResource(dto,resourceId,searchId,user.UserId);
-        return new ResponseType<LearningPhaseVideoDto>(HttpStatus.OK,"updated resources successfully")
+        return new ResponseType<void>(HttpStatus.OK,"updated resources successfully")
     }
 
     @Delete("section/:sectionId/resource/:resourceId")
@@ -180,10 +219,10 @@ export class LearningPhaseController
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionResource,
         @Param("resourceId") resourceId:string,
         @CurrentUserDecorator() user:TokenPayLoad
-    )
+    ): Promise<ResponseType<void>>
     {
         await this.learningPhaseService.DeleteResources(resourceId,searchId,user.UserId);
-        return new ResponseType<LearningPhaseVideoDto>(HttpStatus.OK,"deleted resource successfully")
+        return new ResponseType<void>(HttpStatus.OK,"deleted resource successfully")
     }
 
     @Get('section/:sectionId/video/:videoId')
@@ -196,7 +235,7 @@ export class LearningPhaseController
         @Res() res: any,
     ): Promise<void> {
         const video = await this.learningPhaseService.GetVideo(videoId,searchId);
-        const isMemberExits = await this.isValid(searchId.subTeamId,user.UserId);
+        const isMemberExits = await this.isValid(searchId.subTeamId,"a46e32c7cd7160ec25c2f0b7a6decf39");
         if(!isMemberExits.IsLeader && !isMemberExits.IsMember)
         {
             throw new NotFoundException("Resource not found")
@@ -218,6 +257,7 @@ export class LearningPhaseController
         const start = parseInt(parts[0], 10);
         const end = parts[1] ? parseInt(parts[1], 10) : total - 1;
       
+
         // Validate range
         if (start >= total || end >= total) {
           res.status(416).setHeader('Content-Range', `bytes */${total}`);
@@ -226,7 +266,7 @@ export class LearningPhaseController
       
         const chunkSize = end - start + 1;
         const file = createReadStream(filePath, { start, end });
-      
+
         const videoType = new VideosFileType();
         res.writeHead(206, {
           'Content-Range': `bytes ${start}-${end}/${total}`,
@@ -236,6 +276,41 @@ export class LearningPhaseController
           'Content-Disposition': 'inline',
         });
       
+        // const secondsSave = 60;
+        // let userWatchedLast = 0;
+        // let chunkCount = 0;
+        // const CHUNKS_BEFORE_SAVE = 250; 
+        // let totalStreamedBytes = 0;
+
+        // file.on('data', (chunk) => {
+        //     totalStreamedBytes += chunk.length;
+        // });
+          
+        // file.on('close', () => {
+        //     const userWatched = (video.Duration - ((totalStreamedBytes / total) * video.Duration));
+        //     const estimatedTimeWatched = (start + totalStreamedBytes) / total * video.Duration;
+
+        //     console.log(userWatched,estimatedTimeWatched)
+        // });
+
+        // file.on('data', (chunk) => {
+        //     const userWatched = (video.Duration - ((chunkSize / total) * video.Duration));
+        //     chunkCount++;
+        //     //console.log(userWatched);
+
+        //     if(userWatched > userWatchedLast && chunkCount % CHUNKS_BEFORE_SAVE === 0)
+        //     {
+        //         try
+        //         {
+        //             console.log(`Sending chunk of size: ${chunk.length}`,userWatched,userWatchedLast);
+        //             this.learningPhaseService.AddWatchDuration(video.Id,userWatched,"a46e32c7cd7160ec25c2f0b7a6decf39",false);
+        //             userWatchedLast = userWatched + secondsSave;
+        //         }catch(ex)
+        //         {
+        //             console.log(ex)
+        //         }
+        //     }
+        // });
         file.pipe(res);
     }
 
