@@ -8,6 +8,7 @@ import { ValidationError } from 'class-validator';
 import { ResponseType } from './Common/ResponseType';
 import { ClassValidatorExceptionDto } from './Common/ClassValidatorException.dto';
 import { PostInterceptor } from './Common/PostInterceptor';
+import { TrimPipe } from './Common/TrimPipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +19,7 @@ async function bootstrap() {
     origin:"*"
   })
   app.useGlobalInterceptors(new PostInterceptor())
+  app.useGlobalPipes(new TrimPipe());
 
   app.use('/api/assets/learning/*', (req, res, next) => {
     res.status(404).json(new ResponseType(HttpStatus.NOT_FOUND,"path not found"))
