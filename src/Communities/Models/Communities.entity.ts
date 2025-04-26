@@ -41,4 +41,22 @@ export class Communities extends EntityBase {
 
     @AutoMap(() => [SubTeams])
     SubTeams?: SubTeams[]
+
+    @AutoMap()
+    get MembersCount() : number
+    {
+        let count = 0;
+        if(this.SubTeams)
+        {
+            count = this.SubTeams?.reduce((prev:number,current:SubTeams)=> current.Members.filter(x=> x.JoinDate && !x.LeaveDate).length + prev,0);
+        }
+        //community Admin
+        count += 1
+        //teams admins
+        if(this.Teams)
+        {
+            count += this.Teams.length;
+        }
+        return count;
+    }
 }

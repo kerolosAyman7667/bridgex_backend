@@ -9,7 +9,7 @@ import { Users } from "src/Users/Models/Users.entity";
 import { CommunityCardDto } from "../Dtos/CommunityCard.dto";
 import { CommunitiesImages } from "../Models/CommunitiesImages.entity";
 import { CommunitiesMedia } from "../Models/CommunitiesMedia.entity";
-import { Like, Raw } from "typeorm";
+import { IsNull, Like, Not, Raw } from "typeorm";
 import { CommunitySearchDto } from "../Dtos/CommunitySearch.dto";
 import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto";
 import { IFileService } from "src/Common/FileUpload/IFile.service";
@@ -74,7 +74,7 @@ export class CommunitiesService implements ICommunitiesService {
     }
 
     async GetCards(dto: CommunitySearchDto): Promise<PaginationResponce<CommunityCardDto>> {
-        const communities = await this.repo.FindAllPaginated({ Name: Like(`%${dto?.Name}%`) }, {Leader:true}, dto)
+        const communities = await this.repo.FindAllPaginated({ Name: Like(`%${dto?.Name}%`) }, {Leader:true,SubTeams:{Members:true},Teams:true}, dto)
         return new PaginationResponce<CommunityCardDto>(
             await this.mapper.mapArrayAsync(communities.Data, Communities, CommunityCardDto),
             communities.Count
@@ -86,7 +86,8 @@ export class CommunitiesService implements ICommunitiesService {
             MediaLinks: true,
             Images: true,
             Teams:{Leader:true},
-            Leader:true
+            Leader:true,
+            SubTeams:{Members:true},
         })
 
         if (!community)

@@ -51,6 +51,10 @@ export class CommunityDto
     CreatedAt: Date
 
     @ApiProperty()
+    @AutoMap()
+    MembersCount:number = 0
+
+    @ApiProperty()
     @AutoMap(()=> UserPreviewWithEmailDto)
     Leader:UserPreviewWithEmailDto
 }
