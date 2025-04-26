@@ -33,7 +33,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
     private readonly mapper: Mapper;
 
     async IsMemberExist(subTeamId: string, userId: string): Promise<boolean> {
-        const member = await this.membersRepo.FindOne({SubTeamId:subTeamId,UserId:userId});
+        const member = await this.membersRepo.FindOne({SubTeamId:subTeamId,UserId:userId,JoinDate:Not(IsNull()),LeaveDate:IsNull()});
         if(member)
         {
             return true;

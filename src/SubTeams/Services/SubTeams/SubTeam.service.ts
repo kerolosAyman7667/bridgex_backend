@@ -261,7 +261,7 @@ export class SubTeamService implements ISubTeamsService {
             throw new NotFoundException("Sub Team Not Found")
         }
 
-        const headMember:SubTeamMembers = await this.membersRepo.FindOne({IsHead:true,UserId:userId,LeaveDate:IsNull()})
+        const headMember:SubTeamMembers = await this.membersRepo.FindOne({SubTeamId:subTeam.Id,IsHead:true,UserId:userId,LeaveDate:IsNull()})
 
         if (subTeam.Team.LeaderId !== userId && subTeam.Community.LeaderId !== userId && !headMember) {
             throw new NotFoundException("Sub Team Not Found")
