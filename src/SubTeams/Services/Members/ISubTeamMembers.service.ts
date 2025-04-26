@@ -80,7 +80,14 @@ export interface ISubTeamsMembersService {
      * @throws {NotFoundException} if sub team is not found 
      */
     GetBySubTeam(subTeamId: string, leaderId: string,pagination:MemberSearchDto): Promise<PaginationResponce<MemberReturnDto>>;
-} 
+
+    /**
+     * @param {string} subTeamId - The ID of the team
+     * @param userId 
+     * @returns { Promise<{IsLeader:boolean,IsMember:boolean}>} is the user exist in the sub team or not
+     */
+    IsMemberExist(subTeamId: string, userId: string) : Promise<{IsLeader:boolean,IsMember:boolean}>
+}
 
 export const ISubTeamsMembersService = Symbol("ISubTeamsMembersService")
 

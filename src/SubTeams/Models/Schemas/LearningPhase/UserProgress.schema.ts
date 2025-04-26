@@ -27,7 +27,8 @@ export class UserProgressSchema extends Schema<UserProgress> {
                 },
                 WatchDuration:{
                     type:"decimal",
-                    precision:2,
+                    precision: 12, // total digits
+                    scale: 2,                   
                     nullable:true,
                 }
             },

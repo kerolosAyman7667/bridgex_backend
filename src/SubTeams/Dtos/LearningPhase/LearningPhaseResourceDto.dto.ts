@@ -13,5 +13,9 @@ export class LearningPhaseResourceDto
     
     @AutoMap()
     @ApiProperty()
-    Link:string
+    File:string
+    
+    @ApiProperty()
+    @AutoMap()
+    CreatedAt:Date
 }

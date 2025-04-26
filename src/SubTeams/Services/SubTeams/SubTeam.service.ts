@@ -22,6 +22,11 @@ import { SubTeamLogoFileOptions } from "src/Common/FileUpload/FileTypes/SubTeamL
 import { SubTeamImagesFileOptions } from "src/Common/FileUpload/FileTypes/SubTeamImages.file";
 import { SubTeamMembers } from "../../Models/SubTeamMembers.entity";
 import { CreateLearningPhaseDto } from "src/SubTeams/Dtos/LearningPhase/CreateLearningPhase.dto";
+import { LearningPhaseReturnDto } from "src/SubTeams/Dtos/LearningPhase/LearningPhaseReturn.dto";
+import { HttpService } from "@nestjs/axios";
+import { lastValueFrom } from "rxjs";
+import { CreateKnowledgeBaseDto, CreateKnowledgeBaseResponseDto } from "src/AIModule/Dtos/CreateKnowledgeBase.dto";
+import { AIUrlService } from "src/AIModule/AIUrl.service";
 
 
 /**
@@ -50,7 +55,23 @@ export class SubTeamService implements ISubTeamsService {
 
         @Inject(ITeamsService)
         private readonly teamService: ITeamsService,
+
+        private readonly aiService:AIUrlService
     ) {
+    }
+
+    async GetLearningPhase(userId:string,subTeamId: string): Promise<LearningPhaseReturnDto> {
+        const subTeamWithLearningPhase:SubTeams = await this.repo.Repo
+        .createQueryBuilder('subTeam')
+        .leftJoinAndSelect('subTeam.LearningPhaseSections', 'section')
+        .orderBy("section.Number")
+        .leftJoinAndSelect('section.Resources', 'resource')
+        .leftJoinAndSelect('section.Videos', 'video')
+        .leftJoinAndSelect('video.Progress', 'progress', 'progress.UserId = :userId', { userId })
+        .where('subTeam.Id = :subTeamId', { subTeamId })
+        .getOne();
+
+        return await this.mapper.mapAsync(subTeamWithLearningPhase,SubTeams,LearningPhaseReturnDto)
     }
 
     async UpdateLearningPhase(dto: CreateLearningPhaseDto, subTeamId: string, leaderId: string): Promise<void> {
@@ -77,8 +98,17 @@ export class SubTeamService implements ISubTeamsService {
         newSubTeam.JoinLink = dataToInsert.JoinLink
         newSubTeam.LearningPhaseTitle = "Learning Phase"
         
-        await this.repo.Insert(newSubTeam);
+        const aiData:CreateKnowledgeBaseResponseDto = await this.aiService.AddKnowledgeBase(new CreateKnowledgeBaseDto(`${dataToInsert.Name}_${team.Name}_${team.Community.Name}`));
+        newSubTeam.KnowledgeBaseId = aiData.knowledge_base_id
 
+        try
+        {
+            await this.repo.Insert(newSubTeam);
+        }catch(ex)
+        {
+            this.aiService.DeleteKnowledgeBase(newSubTeam.KnowledgeBaseId)
+            throw ex;
+        }
         return await this.mapper.mapAsync(newSubTeam, SubTeams, SubTeamCardDto)
     }
 
@@ -231,7 +261,7 @@ export class SubTeamService implements ISubTeamsService {
             throw new NotFoundException("Sub Team Not Found")
         }
 
-        const headMember:SubTeamMembers = await this.membersRepo.FindOne({IsHead:true,UserId:userId,LeaveDate:IsNull()})
+        const headMember:SubTeamMembers = await this.membersRepo.FindOne({SubTeamId:subTeam.Id,IsHead:true,UserId:userId,LeaveDate:IsNull()})
 
         if (subTeam.Team.LeaderId !== userId && subTeam.Community.LeaderId !== userId && !headMember) {
             throw new NotFoundException("Sub Team Not Found")

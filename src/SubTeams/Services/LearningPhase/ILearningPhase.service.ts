@@ -5,6 +5,7 @@ import { LearningPhaseSectionDto } from "src/SubTeams/Dtos/LearningPhase/Learnin
 import { LearningPhaseVideoDto } from "src/SubTeams/Dtos/LearningPhase/LearningPhaseVideo.dto"
 import { SubTeamSearchId, SubTeamSearchIdWithSection } from "src/SubTeams/Dtos/SubTeamSearchId"
 import { CreateSectionDto } from "src/SubTeams/Dtos/LearningPhase/CreateSection.dto"
+import { LearningPhaseService } from "./LearningPhase.service"
 
 export interface ILearningPhaseService
 {
@@ -17,18 +18,34 @@ export interface ILearningPhaseService
     //#endregion "Sections"
 
     //#region "Videos"
+    GetVideo(videoId:string,searchIds:SubTeamSearchIdWithSection) : Promise<LearningPhaseVideoDto>;
+
     UploadVideo(dto:CreateVideoDto,file:Express.Multer.File,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<LearningPhaseVideoDto>
 
-    UpdateVideo(dto:CreateVideoDto,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<void>
+    UpdateVideo(dto:CreateVideoDto,videoId:string,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<void>
 
     DeleteVideo(videoId:string,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<void>
     //#endregion "Videos"
 
     //#region "Resource" 
-    UploadResource(dto:CreateResourceDto,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<LearningPhaseResourceDto>
+    GetResource(resourceId:string,searchIds:SubTeamSearchIdWithSection) : Promise<LearningPhaseResourceDto>;
 
-    UpdateResource(dto:CreateResourceDto,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<void>
+    UploadResource(dto:CreateResourceDto,file:Express.Multer.File,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<LearningPhaseResourceDto>
+
+    UpdateResource(dto:CreateResourceDto,resourceId:string,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<void>
 
     DeleteResources(resourceId:string,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<void>
     //#endregion "Resource"
+
+    CompleteVideo(videoId:string,userId:string,searchIds:SubTeamSearchIdWithSection,checkOnTheUser?:boolean) : Promise<void>
+
+    AddWatchDuration(videoId:string,userId:string,duration:number,searchIds:SubTeamSearchIdWithSection,checkOnTheUser?:boolean) : Promise<void>
+}
+
+export const ILearningPhaseService = Symbol("ILearningPhaseService")
+
+
+export const ILearningPhaseServiceProvider = {
+    provide:ILearningPhaseService,
+    useClass:LearningPhaseService
 }

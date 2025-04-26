@@ -22,8 +22,10 @@ jobs:
 
       - name: build docker image
         run: |
-          docker build -t bridgex/backend:${{ github.run_number }} .
+          docker build -t bridgex/backend:latest .
+          docker tag bridgex/backend:latest bridgex/backend:${{ github.run_number }}
 
       - name: push Docker image
         run: |
           docker push bridgex/backend:${{ github.run_number }}
+          docker push bridgex/backend:latest

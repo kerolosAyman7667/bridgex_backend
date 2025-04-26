@@ -25,11 +25,16 @@ export class LearningPhaseResourcesSchema extends Schema<LearningPhaseResources>
                     length: 500,
                     nullable: false,
                 },
+                AIAssetId:{
+                    type:"varchar",
+                    length: 24,
+                    nullable: true,
+                },
             },
             relations: {
                 Section: {
                     type: "many-to-one",
-                    target: SubTeams.name,
+                    target: LearningPhaseSections.name,
                     joinColumn: { name: GetKey<LearningPhaseResources>("SectionId"),referencedColumnName:GetKey<LearningPhaseSections>("Id")}, 
                     inverseSide:GetKey<LearningPhaseSections>("Resources"),
                     onDelete: "RESTRICT",

@@ -23,6 +23,7 @@ export class DatabaseProvider implements TypeOrmOptionsFactory{
             migrationsTableName: 'migration',
             migrations: [__dirname + '*/**/Migrations/*.js'],
             migrationsRun:process.env.NODE_ENV === "production",
+            charset: 'utf8mb4',
         }
     }
 }

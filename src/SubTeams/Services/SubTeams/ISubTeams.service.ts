@@ -10,6 +10,7 @@ import { IVerifyLeader } from "src/Common/Generic/Contracts/IVerifyLeader";
 import { SubTeams } from "../../Models/SubTeams.entity";
 import { SubTeamSearchId } from "../../Dtos/SubTeamSearchId";
 import { CreateLearningPhaseDto } from "src/SubTeams/Dtos/LearningPhase/CreateLearningPhase.dto";
+import { LearningPhaseReturnDto } from "src/SubTeams/Dtos/LearningPhase/LearningPhaseReturn.dto";
 
 export interface ISubTeamsService extends IVerifyLeader<SubTeams> {
     /**
@@ -100,6 +101,13 @@ export interface ISubTeamsService extends IVerifyLeader<SubTeams> {
      * @throws {NotFoundException} if sub team is not found or if user is not the community/team/sub leader
      */
     DeleteImage(subTeamId: string, imageId: string, leaderId: string): Promise<void>;
+
+    /**
+     * @param {string} userId - The ID of the user
+     * @param {string} subTeamId - The ID of the sub team
+     * @throws {NotFoundException} if sub team is not found or if user is not the community/team/sub leader
+     */
+    GetLearningPhase(userId:string,subTeamId: string) : Promise<LearningPhaseReturnDto>
 
     /**
      * Update the name and the description of the learning phase
