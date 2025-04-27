@@ -47,7 +47,15 @@ export class CommunitiesService implements ICommunitiesService {
     }
 
     async Insert(dataToInsert: CommunityCreateDto): Promise<CommunityCardDto> {
-        const user: Users = await this.userService.FindByEmail(dataToInsert.LeaderEmail)
+        const user: Users = await this.userService.FindOne({Email:dataToInsert.LeaderEmail},true,{TeamActiveLeaders:true,SubTeams:true})
+        if(user.TeamActiveLeaders.length > 0)
+        {
+            throw new BadRequestException(`Team leaders can't be community admins`)
+        }
+        if(user.SubTeams.filter(x=> x.LeaveDate).length > 0)
+        {
+            throw new BadRequestException(`Sub team members can't be community admins`)
+        }
         const communities: Communities[] = await this.repo.FindAll(
             [
                 { Name: Raw(alias => `LOWER(${alias}) = LOWER(:name)`, { name: dataToInsert.Name.toLowerCase() }) },
