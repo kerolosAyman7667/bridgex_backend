@@ -110,6 +110,7 @@ export class UsersProfileController {
         if (!files || files?.length === 0) {
             throw new BadRequestException("Upload valid file")
         }
+        console.log(files[0])
         const user: Users = await this.service.FindById(tokenPayLoad.UserId)
         const newPhotoPath = await this.fileServce.Update(
             files[0], ProfilePhotoFileOptions,

@@ -146,7 +146,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
             if (user.CommunityLeaders.length > 0) {
                 throw new BadRequestException("Community leaders can't join")
             }
-            if (user.TeamActiveLeaders.filter(x => x.LeaderId = member.UserId).length > 0) {
+            if (user.TeamActiveLeaders.filter(x => x.LeaderId === member.UserId && x.CommunityId === subTeam.CommunityId).length > 0) {
                 throw new BadRequestException(`Team leaders of this community can't join`)
             }
         }
