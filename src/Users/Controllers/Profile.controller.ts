@@ -110,7 +110,7 @@ export class UsersProfileController {
         if (!files || files?.length === 0) {
             throw new BadRequestException("Upload valid file")
         }
-        console.log(files[0])
+
         const user: Users = await this.service.FindById(tokenPayLoad.UserId)
         const newPhotoPath = await this.fileServce.Update(
             files[0], ProfilePhotoFileOptions,
@@ -168,5 +168,33 @@ export class UsersProfileController {
         @Param("imagename") imagename: string
     ): Promise<StreamableFile> {
         return await this.fileServce.Get(`${ProfilePhotoFileOptions.Dest}${imagename}`, ProfilePhotoFileOptions)
+    }
+
+    @Get('photo')
+    @UseGuards(JWTGaurd)
+    @Header('Content-Type', 'application/octet-stream')
+    @ApiOkResponse({
+        description: 'Returns a file as an octet-stream',
+        content: {
+            'application/octet-stream': {
+                schema: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
+        },
+    })
+    @ApiBearerAuth()
+    @ApiNotFoundResponse()
+    async handleGetImageByUser(
+        @CurrentUserDecorator() user: TokenPayLoad
+    ): Promise<StreamableFile> {
+        const userDb = await this.service.FindById(user.UserId,true);
+        if(!userDb.ProfilePhoto)
+        {
+            throw new NotFoundException("There is no photo")
+        }
+
+        return await this.fileServce.Get(`${ProfilePhotoFileOptions.Dest}${userDb.ProfilePhoto.split("/").pop()}`, ProfilePhotoFileOptions)
     }
 }
