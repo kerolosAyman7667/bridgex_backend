@@ -84,6 +84,7 @@ export class FileService implements IFileService {
 
         let filesPath: FileReturn[] = []
         for (const file of files) {
+            console.log("-----------------------------------------------------------------------------------------")
             //validate the file size aganist the max file size in the fileOptions
             if (file.size > fileOptions.MaxSize)
                 throw new MaximumFileSizeExceeds(file.size, fileOptions.MaxSize)
@@ -94,23 +95,28 @@ export class FileService implements IFileService {
             const allowedMimes = fileOptions.FileType.MimeTypes;
 
             const fileType = await fileTypeFromBuffer(file.buffer);
+            console.log(fileType)
             if (!fileType) {
                 throw new FileTypeIsNotAllowed(allowedMimes, allowedExtensions);
             }
             //check if the file mime exist in the fileOptions
+            console.log(fileType.mime)
             if (!fileOptions.FileType.MimeTypes.includes(fileType.mime)) {
                 throw new FileTypeIsNotAllowed(allowedMimes, allowedExtensions);
             }
             //check if the file Extensions exist in the fileOptions
+            console.log(fileType.ext)
             if (!allowedExtensions.includes(fileType.ext)) {
                 throw new FileTypeIsNotAllowed(allowedMimes, allowedExtensions);
             }
 
             const newFilename = `${Date.now()}_${randomBytes(5).toString("hex")}.${fileType.ext}`;
             const filePath = path.join("files" , fileOptions.Dest, newFilename);
+            console.log(filePath,fileOptions.Dest,newFilename)
 
             //Check if the folder of the files exists if not create them
             const mainFolder = path.join("files" , fileOptions.Dest);
+            console.log(mainFolder)
             try {
                 await access(mainFolder, constants.F_OK);
             } catch (err) {
@@ -123,6 +129,7 @@ export class FileService implements IFileService {
             filesPath.push(
                 new FileReturn(newFilename, path.join(fileOptions.Dest,newFilename))
             )
+            console.log("-----------------------------------------------------------------------------------------")
         }
 
         return filesPath;
