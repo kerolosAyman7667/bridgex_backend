@@ -15,6 +15,7 @@ import { AppController } from './App.controller';
 import { SubTeamsModule } from './SubTeams/SubTeams.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import {join} from 'path';
+import { ChatModule } from './Chat/Chat.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import {join} from 'path';
     EventsModule,
     CommunitiesModule,
     TeamsModule,
-    SubTeamsModule
+    SubTeamsModule,
+    ChatModule
   ],
   controllers: [AppController],
   providers: [],
