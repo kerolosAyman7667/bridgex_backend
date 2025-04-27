@@ -137,15 +137,20 @@ export class CommunitiesService implements ICommunitiesService {
         if(!currentCommunity)
             throw new NotFoundException("Community not found")
 
-        const user: Users = await this.userService.FindByEmail(dto.LeaderEmail)
+        const user: Users = await this.userService.FindOne({Email:dto.LeaderEmail},true,{TeamActiveLeaders:true,SubTeams:true})
+        if(user.TeamActiveLeaders.length > 0)
+        {
+            throw new BadRequestException(`Team leaders can't be community admins`)
+        }
+        if(user.SubTeams.filter(x=> x.LeaveDate).length > 0)
+        {
+            throw new BadRequestException(`Sub team members can't be community admins`)
+        }
         const communities: Communities[] = await this.repo.FindAll(
             [
                 { Name: Raw(alias => `LOWER(${alias}) = LOWER(:name)`, { name: dto.Name.toLowerCase() }) },
                 { LeaderId: user.Id }
-            ],
-            {
-                Teams:true
-            }
+            ]
         );
         if (user.IsSuperAdmin) {
             throw new BadRequestException("Super admins can't be leaders for communities ")
@@ -156,9 +161,10 @@ export class CommunitiesService implements ICommunitiesService {
                 throw new ConflictException("There is a community with this name")
             } else if (community.LeaderId === user.Id && user.Id !== currentCommunity.LeaderId) {
                 throw new ConflictException("Leaders can only lead one community at maximum ")
-            }else if(community.Teams?.filter(x=> x.LeaderId === user.Id).length > 0){
-                throw new ConflictException(`Team leaders for community ${community.Name} can't be Community ${community.Name} admin`)
             }
+            // else if(community.Teams?.filter(x=> x.LeaderId === user.Id).length > 0){
+            //     throw new ConflictException(`Team leaders for community ${community.Name} can't be Community ${community.Name} admin`)
+            // }
         }
         currentCommunity.LeaderId = user.Id
         currentCommunity.Name = dto.Name
