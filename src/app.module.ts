@@ -24,7 +24,7 @@ import {join} from 'path';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'files'),
-      exclude: ['/api/assets/learning/*'], 
+      exclude: ['/api/assets/learning/*','/api/profile/images/*'], 
       serveRoot:"/api/assets"
     }),
     FileModule,
