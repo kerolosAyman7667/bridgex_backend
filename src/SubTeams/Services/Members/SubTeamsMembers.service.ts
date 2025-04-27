@@ -91,7 +91,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
     {
         //get current active sub teams
         const isExist:SubTeamMembers[] = await this.membersRepo.FindAll({ UserId: user.Id,SubTeam:{CommunityId:subTeam.CommunityId} },{SubTeam:true})
-        const joinLik:JoinLinkDto | SubTeamMembers | null = this.AddAndHeadRule(isExist,subTeam,user);
+        const joinLik:JoinLinkDto | SubTeamMembers | null = this.AddAndHeadRule(isExist,subTeam,user,subTeam.CommunityId);
 
         const newMember = new SubTeamMembers();
         newMember.UserId = user.Id;
@@ -253,7 +253,8 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
     AddAndHeadRule(
         isExistMember:SubTeamMembers[],
         subTeam:SubTeams,
-        user:Users
+        user:Users,
+        communityId:string
     ) : JoinLinkDto | SubTeamMembers | null
     {
         if (user.IsSuperAdmin) {
@@ -262,7 +263,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         if (user.CommunityLeaders.length > 0) {
             throw new BadRequestException("Community leaders can't join")
         }
-        if (user.TeamActiveLeaders.filter(x => x.LeaderId = user.Id).length > 0) {
+        if (user.TeamActiveLeaders.filter(x => x.LeaderId === user.Id && x.CommunityId === communityId).length > 0) {
             throw new BadRequestException(`Team leaders of this community can't join`)
         }
 

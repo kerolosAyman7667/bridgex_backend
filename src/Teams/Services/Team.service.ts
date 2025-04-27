@@ -50,12 +50,20 @@ export class TeamService implements ITeamsService {
     }
 
     async Insert(dataToInsert: TeamCreateDto, communityId: string, leaderId: string): Promise<TeamCardDto> {
-        //check if he is the leader of cummmunity 
+        //check if he is the leader of community 
         const community = await this.communityService.VerifyLeaderId(communityId, leaderId)
         //check if the leader email is existing user and is valid
-        const user = await this.userService.FindByEmail(dataToInsert.LeaderEmail);
+        const user = await this.userService.FindOne({Email:dataToInsert.LeaderEmail},true,{CommunityLeaders:true,SubTeams:{SubTeam:true}});
         if (user.IsSuperAdmin)
             throw new BadRequestException("Super admin can't be team leader")
+        if(user.CommunityLeaders.length > 0)
+        {
+            throw new BadRequestException("Community admins can't be team leader")
+        }
+        if(user.SubTeams.filter(x=> !x.LeaveDate && x.SubTeam.CommunityId === communityId).length > 0)
+        {
+            throw new BadRequestException("Members can't be team leader")
+        }
 
         const teams: Teams[] = await this.teamRepo.FindAll(
             [
@@ -135,9 +143,17 @@ export class TeamService implements ITeamsService {
             throw new NotFoundException("Team Not Found")
         }
         //search for the user id by the provided email
-        const user: Users = await this.userService.FindByEmail(dto.LeaderEmail);
+        const user = await this.userService.FindOne({Email:dto.LeaderEmail},true,{CommunityLeaders:true,SubTeams:{SubTeam:true}});
         if (user.IsSuperAdmin)
             throw new BadRequestException("Super admin can't be team leader")
+        if(user.CommunityLeaders.length > 0)
+        {
+            throw new BadRequestException("Community admins can't be team leader")
+        }
+        if(user.SubTeams.filter(x=> !x.LeaveDate && x.SubTeam.CommunityId === team.CommunityId).length > 0)
+        {
+            throw new BadRequestException("Members can't be team leader")
+        }
 
         //TODO add transaction
         //if the user id doesnt match this means that there is a new leader assigned to the team
