@@ -25,13 +25,14 @@ import { ISubTeamsChannelServiceProvider } from "./Services/Channels/ISubTeamsCh
 import { SubTeamChannelController } from "./Controllers/SubTeamChannel.controller";
 import { SubTeamChannelChatsController } from "./Controllers/SubTeamChannelChats.controller";
 import { EventsModule } from "src/Infrastructure/Events/Events.module";
+import { NotificationModule } from "src/Infrastructure/Notification/NotificationModule";
 
 @Module({
     imports:[
        DatabaseModule.forFeature([SubTeams,SubTeamsMedia,SubTeamImages,SubTeamMembers,SubTeamChannelChats,SubTeamChannels,
         LearningPhaseSections,LearningPhaseResources,LearningPhaseVideos,UserProgress
        ]),
-       UsersModule,forwardRef(()=> TeamsModule),AIModule,EventsModule
+       UsersModule,forwardRef(()=> TeamsModule),AIModule,EventsModule,NotificationModule
     ],
     controllers:[SubTeamsController, SubTeamImagesGet, SubTeamMembersController, LearningPhaseController,SubTeamChannelController,SubTeamChannelChatsController],
     providers:[ISubTeamsServiceProvider,ISubTeamsMembersServiceProvider,ILearningPhaseServiceProvider,SubTeamsProfile,ISubTeamsChannelServiceProvider],

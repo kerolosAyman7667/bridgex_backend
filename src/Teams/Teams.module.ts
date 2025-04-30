@@ -20,11 +20,12 @@ import { TeamChannelChatsController } from "./Controllers/Channels/TeamChannelCh
 import { TeamChannelController } from "./Controllers/Channels/TeamChannel.controller";
 import { SubTeamsModule } from "src/SubTeams/SubTeams.module";
 import { EventsModule } from "src/Infrastructure/Events/Events.module";
+import { NotificationModule } from "src/Infrastructure/Notification/NotificationModule";
 
 @Module({
     imports:[
        DatabaseModule.forFeature([Teams,TeamsMedia,TeamImages,TeamLeaders,TeamAchievements,TeamChannels,TeamChannelChats]),
-       CommunitiesModule,UsersModule,forwardRef(() => SubTeamsModule),EventsModule
+       CommunitiesModule,UsersModule,forwardRef(() => SubTeamsModule),EventsModule,NotificationModule
     ],
     controllers:[TeamsController,TeamAchievementController,TeamImagesGet,TeamChannelController,TeamChannelChatsController],
     providers:[ITeamsServiceProvider,ITeamsAchievementServiceProvider,TeamsProfile,ITeamsChannelServiceProvider],

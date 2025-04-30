@@ -22,6 +22,7 @@ import { TeamImagesFileOptions } from "src/Common/FileUpload/FileTypes/TeamImage
 import { TeamLeaders } from "../Models/TeamLeaders.entity";
 import { Users } from "src/Users/Models/Users.entity";
 import { IsNull, Raw } from "typeorm";
+import { INotification } from "src/Common/Generic/Contracts/INotificationService";
 
 //TODO verify the the team leader is not the Community leader
 /**
@@ -45,7 +46,9 @@ export class TeamService implements ITeamsService {
         @InjectMapper()
         private readonly mapper: Mapper,
         @Inject(ICommunitiesService)
-        private readonly communityService: ICommunitiesService
+        private readonly communityService: ICommunitiesService,
+        @Inject(INotification)
+        private readonly notiService: INotification,
     ) {
     }
 
@@ -88,6 +91,7 @@ export class TeamService implements ITeamsService {
         //add the leader to the leader history
         try {
             this.leadersRepo.Insert(new TeamLeaders(null, addedTeam.LeaderId, addedTeam.Id))
+            this.notiService.SendLeaderTeamEmail(user.Email,user.FirstName,community.Name,team.Name)
         } catch (err) {
             //TODO add logger
             console.log(err)
@@ -139,6 +143,7 @@ export class TeamService implements ITeamsService {
     async Update(id: string, dto: TeamCreateDto, leaderId: string): Promise<void> {
         //check if the team exist and the Community leader Only can update it
         const team: Teams = await this.teamRepo.FindOne({ Id: id, Community: { LeaderId: leaderId } }, { Community: true })
+        const oldLeaderId = team.LeaderId;
         if (team === null) {
             throw new NotFoundException("Team Not Found")
         }
@@ -192,6 +197,8 @@ export class TeamService implements ITeamsService {
         }
         //update the team with new leader id and name
         await this.teamRepo.Update(team.Id, team);
+        if(oldLeaderId !== team.LeaderId)
+            this.notiService.SendLeaderTeamEmail(user.Email,user.FirstName,team.Community.Name,team.Name)
     }
 
     async AddLogo(id: string, files: Express.Multer.File, leaderId: string): Promise<LogoDto> {

@@ -22,6 +22,7 @@ import { ICommunitiesService } from "./ICommunities.service";
 import { ImagesDto } from "src/Common/DTOs/Images.dto";
 import { ImageCreateDto } from "src/Common/DTOs/ImageCreate.dto";
 import { LogoDto } from "src/Common/DTOs/Logo.dto";
+import { INotification } from "src/Common/Generic/Contracts/INotificationService";
 
 //TODO update the auth part to better approach
 /**
@@ -43,6 +44,8 @@ export class CommunitiesService implements ICommunitiesService {
         @InjectMapper()
         private readonly mapper: Mapper,
         private readonly userService: UsersService,
+        @Inject(INotification)
+        private readonly notiService:INotification
     ) {
     }
 
@@ -99,6 +102,7 @@ export class CommunitiesService implements ICommunitiesService {
         community.LeaderId = user.Id
 
         const addedCommunities: Communities = await this.repo.Insert(community,{Leader:true});
+        this.notiService.SendLeaderCommunityEmail(user.Email,user.FirstName,community.Name)
         return await this.mapper.mapAsync(addedCommunities, Communities, CommunityCardDto)
     }
 
@@ -187,10 +191,13 @@ export class CommunitiesService implements ICommunitiesService {
             //     throw new ConflictException(`Team leaders for community ${community.Name} can't be Community ${community.Name} admin`)
             // }
         }
+        const oldLeaderId = currentCommunity.LeaderId;
         currentCommunity.LeaderId = user.Id
         currentCommunity.Name = dto.Name
 
-        await this.repo.Update(currentCommunity.Id,currentCommunity);   
+        await this.repo.Update(currentCommunity.Id,currentCommunity);
+        if(oldLeaderId !== currentCommunity.LeaderId)
+            this.notiService.SendLeaderCommunityEmail(user.Email,user.FirstName,currentCommunity.Name)   
     }
 
     async AddLogo(id: string, files: Express.Multer.File,leaderId:string) : Promise<LogoDto>{

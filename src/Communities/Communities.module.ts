@@ -8,12 +8,13 @@ import { CommunitiesMedia } from "./Models/CommunitiesMedia.entity";
 import { CommunitiesController } from "./Controllers/Communities.controller";
 import { CommunitiesProfile } from "./Controllers/Communities.profile";
 import { ICommunitiesServiceProvider } from "./Services/ICommunities.service";
+import { NotificationModule } from "src/Infrastructure/Notification/NotificationModule";
 
 @Module({
     imports:[
         DatabaseModule.forFeature([Communities,CommunitiesImages,CommunitiesMedia]),
         AuthModule,
-        UsersModule
+        UsersModule,NotificationModule
     ],
     controllers:[CommunitiesController],
     providers:[ICommunitiesServiceProvider,CommunitiesProfile],
