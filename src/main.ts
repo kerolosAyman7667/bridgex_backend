@@ -9,6 +9,8 @@ import { ResponseType } from './Common/ResponseType';
 import { ClassValidatorExceptionDto } from './Common/ClassValidatorException.dto';
 import { PostInterceptor } from './Common/PostInterceptor';
 import { TrimPipe } from './Common/TrimPipe';
+import { RedisProvidersEnum } from './Infrastructure/Events/EventConfig/RedisProviders';
+import { RedisIoAdapter } from './Chat/RedisIoAdapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -42,6 +44,13 @@ async function bootstrap() {
     }
   }))
 
+  const redisIoAdapter = new RedisIoAdapter(
+    app,
+    app.get(RedisProvidersEnum.PUB),
+    app.get(RedisProvidersEnum.SUB),
+  );
+  app.useWebSocketAdapter(redisIoAdapter);
+  
   app.useGlobalFilters(new GlobalExceptionFilter())
 
   const config = new DocumentBuilder()

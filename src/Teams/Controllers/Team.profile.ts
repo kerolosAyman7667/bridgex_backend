@@ -13,6 +13,10 @@ import { TeamLeaders } from '../Models/TeamLeaders.entity';
 import { TeamLeaderDto } from '../Dtos/TeamLeader';
 import { TeamAchievements } from '../Models/TeamAchievements.entity';
 import { TeamAchievementDto } from '../Dtos/TeamAchievement';
+import { TeamChannels } from '../Models/TeamChannels.entity';
+import { ChannelDto } from 'src/Common/Channels/Dtos/Channel.dto';
+import { TeamChannelChats } from '../Models/TeamChannelChats.entity';
+import { MessagesDto } from 'src/Common/Channels/Dtos/Messages.dto';
 
 @Injectable()
 export class TeamsProfile extends AutomapperProfile {
@@ -45,6 +49,8 @@ export class TeamsProfile extends AutomapperProfile {
         createMap(mapper, Teams, TeamDto),
         createMap(mapper, TeamsMedia, MediaCreateDto),
         createMap(mapper, TeamAchievements, TeamAchievementDto)
+        createMap(mapper, TeamChannels, ChannelDto);
+        createMap(mapper, TeamChannelChats, MessagesDto);
     };
   }
 

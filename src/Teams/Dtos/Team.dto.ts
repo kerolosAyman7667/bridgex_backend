@@ -3,12 +3,12 @@ import { TeamsConstants } from "../TeamsConstants";
 import { ImagesDto } from "../../Common/DTOs/Images.dto";
 import { MediaCreateDto } from "../../Common/DTOs/MediaCreatedto";
 import { ApiProperty } from "@nestjs/swagger";
-import { TeamChannelDto } from "./TeamChannel";
 import { TeamAchievementDto } from "./TeamAchievement";
 import { TeamLeaderDto } from "./TeamLeader";
 import { ICanModify } from "src/Common/Generic/Contracts/ICanModify";
 import { UserPreviewWithEmailDto } from "src/Users/Dtos/UserPreview.dto";
 import { SubTeamCardDto } from "src/SubTeams/Dtos/SubTeamCard.dto";
+import { ChannelDto } from "src/Common/Channels/Dtos/Channel.dto";
 
 export class TeamDto {
 
@@ -48,9 +48,9 @@ export class TeamDto {
     @ApiProperty({type:[MediaCreateDto]})
     MediaLinks: MediaCreateDto[] = []
 
-    @AutoMap(() => [TeamChannelDto])
-    @ApiProperty({type:[TeamChannelDto]})
-    Channels: TeamChannelDto[] = []
+    @AutoMap(() => [ChannelDto])
+    @ApiProperty({type:[ChannelDto]})
+    Channels: ChannelDto[] = []
 
     @AutoMap(() => [TeamAchievementDto])
     @ApiProperty({type:[TeamAchievementDto]})
@@ -82,4 +82,7 @@ export class TeamWithCanModifyDto extends TeamDto implements ICanModify
            can't do any modification to community 
         `})
     public CanModify: boolean = false;
+
+    @ApiProperty({description:"This mean he is a member in a sub team"})
+    public IsMember: boolean = false;
 }

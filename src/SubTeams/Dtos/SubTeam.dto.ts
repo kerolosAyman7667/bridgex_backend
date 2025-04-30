@@ -3,10 +3,10 @@ import { SubTeamsConstants } from "../SubTeamsConstants";
 import { ImagesDto } from "../../Common/DTOs/Images.dto";
 import { MediaCreateDto } from "../../Common/DTOs/MediaCreatedto";
 import { ApiProperty } from "@nestjs/swagger";
-import { SubTeamChannelDto } from "./SubTeamChannel";
 import { ICanModify } from "src/Common/Generic/Contracts/ICanModify";
 import { UserPreviewDto } from "src/Users/Dtos/UserPreview.dto";
 import { MemberReturnDto } from "./SubTeamMembersDtos/MemberReturn.dto";
+import { ChannelDto } from "src/Common/Channels/Dtos/Channel.dto";
 
 export class SubTeamDto {
 
@@ -45,12 +45,12 @@ export class SubTeamDto {
     @ApiProperty({type:[MediaCreateDto]})
     MediaLinks: MediaCreateDto[] = []
 
-    @AutoMap(() => [SubTeamChannelDto])
-    @ApiProperty({type:[SubTeamChannelDto]})
-    Channels: SubTeamChannelDto[] = []
+    @AutoMap(() => [ChannelDto])
+    @ApiProperty({type:[ChannelDto]})
+    Channels: ChannelDto[] = []
 
-    @AutoMap(() => [SubTeamChannelDto])
-    @ApiProperty({type:[SubTeamChannelDto]})
+    @AutoMap(() => [MemberReturnDto])
+    @ApiProperty({type:[MemberReturnDto]})
     Leaders: MemberReturnDto[] = []
 
     @AutoMap()
@@ -60,6 +60,14 @@ export class SubTeamDto {
     @ApiProperty()
     @AutoMap()
     MembersCount:number = 0
+
+    @AutoMap()
+    @AutoMap()
+    LearningPhaseTitle: string
+
+    @AutoMap()
+    @AutoMap()
+    LearningPhaseDesc?: string
 }
 
 

@@ -23,6 +23,25 @@ export class SubTeamChannelChatsSchema extends Schema<SubTeamChannelChats> {
                     type: "varchar",
                     length: 32,
                     nullable: false,
+                },
+                Deleted:{
+                    type:"boolean",
+                    default:false
+                },
+                ThreadId:{
+                    type: "varchar",
+                    length: 32,
+                    nullable: true, 
+                },
+                ThreadStart:{
+                    type:"boolean",
+                    default:false
+                },
+                ReplyToId:{
+                    type: "varchar",
+                    length: 32,
+                    nullable: true,
+                    unique:false
                 }
             },
             relations: {
@@ -38,6 +57,20 @@ export class SubTeamChannelChatsSchema extends Schema<SubTeamChannelChats> {
                     joinColumn: { name: GetKey<SubTeamChannelChats>("UserId"),referencedColumnName:GetKey<Users>("Id") }, 
                     onDelete: "RESTRICT",
                 },
+                ReplyTo: {
+                    type: "many-to-one",
+                    target: SubTeamChannelChats.name,
+                    joinColumn: { name: GetKey<SubTeamChannelChats>("ReplyToId"),referencedColumnName:GetKey<SubTeamChannelChats>("Id") }, 
+                    inverseSide: GetKey<SubTeamChannelChats>("Replies"),
+                    onDelete: "CASCADE",
+                },
+                Replies:{
+                    type: "one-to-many",
+                    target: SubTeamChannelChats.name,
+                    joinColumn: { name: GetKey<SubTeamChannelChats>("ReplyToId"),referencedColumnName:GetKey<SubTeamChannelChats>("Id") }, 
+                    inverseSide: GetKey<SubTeamChannelChats>("ReplyTo"),
+                    onDelete: "CASCADE",
+                }
             },
         })
     }

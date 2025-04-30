@@ -2,7 +2,7 @@ import { IGenericRepo } from "src/Common/Generic/Contracts/IGenericRepo";
 import { SubTeamMembers } from "../../Models/SubTeamMembers.entity";
 import { ISubTeamsMembersService } from "./ISubTeamMembers.service";
 import { ISubTeamsService } from "../SubTeams/ISubTeams.service";
-import { BadRequestException, ConflictException, Inject, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Scope } from "@nestjs/common";
 import { UsersService } from "src/Users/Services/Users.service";
 import { SubTeams } from "../../Models/SubTeams.entity";
 import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto";
@@ -14,11 +14,13 @@ import { FindOptionsOrder, FindOptionsWhere, ILike, IsNull, Not } from "typeorm"
 import { JoinLinkDto } from "../../Dtos/SubTeamMembersDtos/JoinLink.dto";
 import { Users } from "src/Users/Models/Users.entity";
 import { ITeamsService } from "src/Teams/Services/ITeams.service";
+import { INotification } from "src/Common/Generic/Contracts/INotificationService";
 
 //TODO make rule for the verify if the member IsHead
 /**
  * @implements {ISubTeamsMembersService}
  */
+@Injectable({scope:Scope.REQUEST})
 export class SubTeamsMembersService implements ISubTeamsMembersService {
 
     @Inject(ISubTeamsService)
@@ -35,6 +37,33 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         
     @InjectMapper()
     private readonly mapper: Mapper;
+
+    @Inject(INotification)
+    private readonly notiService:INotification
+
+    async IsMemberExistByTeam(teamId: string, userId: string): Promise<{ IsLeader: boolean; IsMember: boolean; }> 
+    {
+        const dataReturn:{IsLeader:boolean,IsMember:boolean} = {IsLeader:false,IsMember:false};
+        try
+        {
+            await this.teamService.VerifyLeaderId(teamId,userId);
+            dataReturn.IsLeader = true;
+        }catch(ex)
+        {
+            const user = await this.membersRepo.FindOne({SubTeam:{TeamId:teamId},UserId:userId,LeaveDate:IsNull(),JoinDate:Not(IsNull())},{SubTeam:true});
+            if(user)
+            {
+                dataReturn.IsMember = true;
+                dataReturn.IsLeader = user.IsHead;
+            }
+            else
+            {
+                dataReturn.IsMember = false;
+            }
+        }
+
+        return dataReturn;
+    }
 
     async IsMemberExist(subTeamId: string, userId: string): Promise<{IsLeader:boolean,IsMember:boolean}> {
         const dataReturn:{IsLeader:boolean,IsMember:boolean} = {IsLeader:false,IsMember:false};
@@ -121,6 +150,13 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         else
         {
             await this.membersRepo.Insert(newMember)
+            if(newMember.IsHead)
+            {
+                this.notiService.SendHeadSubTeamEmail(user.Email,user.FirstName,subTeam.Name)   
+            }else
+            {
+                this.notiService.SendSubTeamMemberAddEmail(user.Email,user.FirstName,subTeam.Name)
+            }
         }
         return true
     }
@@ -149,14 +185,21 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
             if (user.TeamActiveLeaders.filter(x => x.LeaderId === member.UserId && x.CommunityId === subTeam.CommunityId).length > 0) {
                 throw new BadRequestException(`Team leaders of this community can't join`)
             }
+
+            member.IsHead = true
+            await this.membersRepo.Update(member.Id, member)
+            this.notiService.SendHeadSubTeamEmail(user.Email,user.FirstName,subTeam.Name)
         }
-        member.IsHead = !member.IsHead
-        await this.membersRepo.Update(member.Id, member)
+        else
+        {
+            member.IsHead = false
+            await this.membersRepo.Update(member.Id, member)
+        }
     }
 
     async Accept(subTeamId: string, memberId: string, leaderId: string): Promise<void> {
         const subTeam = await this.subTeamService.VerifyLeaderId(subTeamId, leaderId)
-        const member = await this.membersRepo.FindOne({ SubTeamId: subTeamId, Id:memberId, LeaveDate:IsNull() })
+        const member = await this.membersRepo.FindOne({ SubTeamId: subTeamId, Id:memberId, LeaveDate:IsNull() },{User:true})
         if (!member) {
             throw new NotFoundException("User not found")
         }
@@ -171,6 +214,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         }
         member.JoinDate = new Date()
         await this.membersRepo.Update(member.Id, member)
+        this.notiService.SendSubTeamMemberAddEmail(member.User.Email,member.User.FirstName,subTeam.Name)
     }
 
     async DeleteMember(subTeamId: string, memberId: string, leaderId: string): Promise<void> {
