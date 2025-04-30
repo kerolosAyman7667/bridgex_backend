@@ -14,6 +14,7 @@ import { LogoDto } from "src/Common/DTOs/Logo.dto";
 import { ImagesDto } from "src/Common/DTOs/Images.dto";
 import { ImageCreateDto } from "src/Common/DTOs/ImageCreate.dto";
 import { OptionalGuard } from "src/AuthModule/Gaurds/OptionalGuard";
+import { ISubTeamsMembersService } from "src/SubTeams/Services/Members/ISubTeamMembers.service";
 
 @ApiTags('teams')
 @Controller('communities/:communityId/teams')
@@ -21,7 +22,9 @@ export class TeamsController {
 
     constructor(
         @Inject(ITeamsService)
-        private readonly service: ITeamsService
+        private readonly service: ITeamsService,
+        @Inject(ISubTeamsMembersService)
+        private readonly membersService: ISubTeamsMembersService
     ) { }
 
     /**
@@ -76,12 +79,20 @@ export class TeamsController {
         @CurrentUserDecorator() payload:TokenPayLoad
     ): Promise<ResponseType<TeamWithCanModifyDto>> {
         const c = (await this.service.GetTeam(id,communityId)) as TeamWithCanModifyDto;
-        c.CanModify = false;
-        try
+        if(payload)
         {
-            await this.service.VerifyLeaderId(id,payload?.UserId)
-            c.CanModify = true;
-        }catch(ex){}
+            const isMember = await this.membersService.IsMemberExistByTeam(c.Id,payload.UserId)
+            c.CanModify = isMember.IsLeader 
+            // c.IsMember =  isMember.IsMember
+            // if(!isMember.IsMember && !isMember.IsLeader)
+            // {
+            //     delete c.Channels;
+            // }
+        }
+        else
+        {
+            delete c.Channels; 
+        }
 
         return new ResponseType<TeamWithCanModifyDto>(200, "Get team successfully", c)
     }

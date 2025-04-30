@@ -82,4 +82,7 @@ export class TeamWithCanModifyDto extends TeamDto implements ICanModify
            can't do any modification to community 
         `})
     public CanModify: boolean = false;
+
+    @ApiProperty({description:"This mean he is a member in a sub team"})
+    public IsMember: boolean = false;
 }
