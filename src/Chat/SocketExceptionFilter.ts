@@ -17,7 +17,7 @@ export class SocketExceptionFilter implements WsExceptionFilter {
       exception?.name
     )
 
-    client.emit('Error', response);
+    client.emit('error', response);
   }
 }
 

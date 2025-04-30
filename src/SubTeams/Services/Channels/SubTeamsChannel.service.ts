@@ -6,7 +6,7 @@ import { SubTeamSearchId } from "src/SubTeams/Dtos/SubTeamSearchId";
 import { ISubTeamsChannelService } from "./ISubTeamsChannel.service";
 import { SubTeamChannels } from "src/SubTeams/Models/SubTeamChannels.entity";
 import { SubTeamChannelChats } from "src/SubTeams/Models/SubTeamChannelChats.entity";
-import { BadRequestException, ConflictException, Inject, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Scope } from "@nestjs/common";
 import { GenericRepo } from "src/Infrastructure/Database/Repos/GenericRepo";
 import { ISubTeamsMembersService } from "../Members/ISubTeamMembers.service";
 import { ISubTeamsService } from "../SubTeams/ISubTeams.service";
@@ -18,7 +18,11 @@ import { UsersService } from "src/Users/Services/Users.service";
 import { CreateMessageDto } from "src/Common/Channels/Dtos/CreateMessage.dto";
 import { randomBytes } from "crypto";
 import { ThreadDto } from "src/Common/Channels/Dtos/Thread.dto";
+import Redis from "ioredis";
+import { RedisProvidersEnum, RedisProvidersSubs } from "src/Infrastructure/Events/EventConfig/RedisProviders";
+import { SentMessageChatDto, ThreadChatDto } from "src/Chat/Dtos/SentMessageChat.dto";
 
+@Injectable({scope:Scope.REQUEST})
 export class SubTeamsChannelService implements ISubTeamsChannelService {
 
     @Inject(`REPO_${SubTeamChannels.name.toUpperCase()}`)
@@ -38,6 +42,10 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
 
     @Inject(UsersService)
     private readonly userService: UsersService
+
+    @Inject(RedisProvidersEnum.PUB) 
+    private readonly redisPubClient: Redis;
+
     
     async GetChannelsBySubTeam(searchId: SubTeamSearchId): Promise<ChannelDto[]> 
     {
@@ -185,8 +193,16 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
         message.ThreadStart = true
         message.ThreadId = randomBytes(16).toString("hex");
         await this.channelsChatsRepo.Update(message.Id, message);
+        const returnThread = new ThreadDto(message.Message,message.ThreadId)
 
-        return new ThreadDto(message.Message,message.ThreadId)
+        const threadEvent = new ThreadChatDto()
+        threadEvent.ChannelId = message.ChannelId
+        threadEvent.ThreadId = returnThread.Id
+        threadEvent.Thread = returnThread
+
+        this.redisPubClient.publish(RedisProvidersSubs.NEWTHREAD, JSON.stringify(threadEvent));
+
+        return returnThread
     }
 
     async GetThreads(channelId: string, userId: string,page:number): Promise<PaginationResponce<ThreadDto>> 
@@ -232,28 +248,32 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
             {
                 ChannelId:channel.Id,
                 ThreadId:dto.ThreadId,
-                Id:dto.ReplyToId
+                Id:dto.ReplyToId,
+                Deleted:false
             } 
             :
             [
                 {
                     ChannelId:channel.Id,
                     ThreadStart:true,
-                    Id:dto.ReplyToId
+                    Id:dto.ReplyToId,
+                    Deleted:false
                 },
                 {
                     ChannelId:channel.Id,
                     ThreadId:IsNull(),
-                    Id:dto.ReplyToId
+                    Id:dto.ReplyToId,
+                    Deleted:false
                 }
             ]
 
-            const messageExist = await this.channelsChatsRepo.FindOne(chatSearch)
+            const messageExist = await this.channelsChatsRepo.FindOne(chatSearch,{User:true})
             if(!messageExist)
             {
                 throw new NotFoundException("Cant replying to non existing message")
             }
             chat.ReplyToId = messageExist.Id;
+            chat.ReplyTo = messageExist
         }
         if(dto.ThreadId)
         {
@@ -268,7 +288,13 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
         await this.channelsChatsRepo.Insert(chat)
         chat.User = user;
 
-        return await this.mapper.mapAsync(chat,SubTeamChannelChats,MessagesDto)
+        const eventMessage = new SentMessageChatDto()
+        eventMessage.ChannelId = channel.Id
+        eventMessage.ThreadId = chat.ThreadId
+        eventMessage.Message = await this.mapper.mapAsync(chat,SubTeamChannelChats,MessagesDto)
+        this.redisPubClient.publish(RedisProvidersSubs.CHAT, JSON.stringify(eventMessage));
+
+        return eventMessage.Message
     }
 
     async DeleteMessage(channelId: string, messageId: string, userId: string): Promise<MessagesDto> {
@@ -296,10 +322,16 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
             throw new NotFoundException("Message not found");
         }
         message.Deleted = true
-        await this.channelsChatsRepo.Update(message.Id,message)
-        message.User = user;
+        const updatedMessage = await this.channelsChatsRepo.Update(message.Id,message,{ReplyTo:{User:true}})
+        updatedMessage.User = user;
+
+        const eventMessage = new SentMessageChatDto()
+        eventMessage.ChannelId = channel.Id
+        eventMessage.ThreadId = updatedMessage.ThreadId
+        eventMessage.Message = await this.mapper.mapAsync(updatedMessage,SubTeamChannelChats,MessagesDto)
+        this.redisPubClient.publish(RedisProvidersSubs.DELETED, JSON.stringify(eventMessage));
         
-        return await this.mapper.mapAsync(message,SubTeamChannelChats,MessagesDto)
+        return eventMessage.Message
     }
 
     async IsChannelExist(channelId: string, searchId: SubTeamSearchId): Promise<boolean> {

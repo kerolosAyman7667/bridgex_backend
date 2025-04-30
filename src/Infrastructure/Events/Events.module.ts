@@ -2,6 +2,7 @@ import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { EventsConfigService } from "./EventConfig/Events.config";
+import { RedisProviders } from "./EventConfig/RedisProviders";
 
 @Module({
     imports:[ConfigModule,
@@ -11,6 +12,7 @@ import { EventsConfigService } from "./EventConfig/Events.config";
             useClass:EventsConfigService
         })
     ],
-    providers:[]
+    providers:[...RedisProviders],
+    exports:[...RedisProviders]
 })
 export class EventsModule{}

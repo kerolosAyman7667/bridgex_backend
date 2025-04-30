@@ -8,7 +8,7 @@ import { ILearningPhaseService } from "./ILearningPhase.service";
 import { ISubTeamsService } from "../SubTeams/ISubTeams.service";
 import { GenericRepo } from "src/Infrastructure/Database/Repos/GenericRepo";
 import { LearningPhaseSections } from "src/SubTeams/Models/LearningPhase/LearningPhaseSections.entity";
-import { ConflictException, Inject, NotFoundException } from "@nestjs/common";
+import { ConflictException, Inject, Injectable, NotFoundException, Scope } from "@nestjs/common";
 import { CreateSectionDto } from "src/SubTeams/Dtos/LearningPhase/CreateSection.dto";
 import { IFileService } from "src/Common/FileUpload/IFile.service";
 import { LearningPhaseResourcesFileOptions } from "src/Common/FileUpload/FileTypes/LearningPhaseResources.file";
@@ -24,6 +24,7 @@ import { join } from "path";
 import { AIUrlService } from "src/AIModule/AIUrl.service";
 import { CreateAssetResponseDto } from "src/AIModule/Dtos/CreateAssetResponse.dto";
 
+@Injectable({scope:Scope.REQUEST})
 export class LearningPhaseService implements ILearningPhaseService {
     @Inject(ISubTeamsService)
     private readonly subTeamService: ISubTeamsService

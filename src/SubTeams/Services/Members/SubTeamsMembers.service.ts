@@ -2,7 +2,7 @@ import { IGenericRepo } from "src/Common/Generic/Contracts/IGenericRepo";
 import { SubTeamMembers } from "../../Models/SubTeamMembers.entity";
 import { ISubTeamsMembersService } from "./ISubTeamMembers.service";
 import { ISubTeamsService } from "../SubTeams/ISubTeams.service";
-import { BadRequestException, ConflictException, Inject, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Scope } from "@nestjs/common";
 import { UsersService } from "src/Users/Services/Users.service";
 import { SubTeams } from "../../Models/SubTeams.entity";
 import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto";
@@ -19,6 +19,7 @@ import { ITeamsService } from "src/Teams/Services/ITeams.service";
 /**
  * @implements {ISubTeamsMembersService}
  */
+@Injectable({scope:Scope.REQUEST})
 export class SubTeamsMembersService implements ISubTeamsMembersService {
 
     @Inject(ISubTeamsService)

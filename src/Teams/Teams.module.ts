@@ -19,11 +19,12 @@ import { ITeamsChannelServiceProvider } from "./Services/Channels/ITeamChannel.s
 import { TeamChannelChatsController } from "./Controllers/Channels/TeamChannelChats.controller";
 import { TeamChannelController } from "./Controllers/Channels/TeamChannel.controller";
 import { SubTeamsModule } from "src/SubTeams/SubTeams.module";
+import { EventsModule } from "src/Infrastructure/Events/Events.module";
 
 @Module({
     imports:[
        DatabaseModule.forFeature([Teams,TeamsMedia,TeamImages,TeamLeaders,TeamAchievements,TeamChannels,TeamChannelChats]),
-       CommunitiesModule,UsersModule,forwardRef(() => SubTeamsModule)
+       CommunitiesModule,UsersModule,forwardRef(() => SubTeamsModule),EventsModule
     ],
     controllers:[TeamsController,TeamAchievementController,TeamImagesGet,TeamChannelController,TeamChannelChatsController],
     providers:[ITeamsServiceProvider,ITeamsAchievementServiceProvider,TeamsProfile,ITeamsChannelServiceProvider],
