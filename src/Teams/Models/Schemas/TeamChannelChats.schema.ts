@@ -25,6 +25,25 @@ export class TeamChannelChatsSchema extends Schema<TeamChannelChats> {
                     type: "varchar",
                     length: 32,
                     nullable: false,
+                },
+                Deleted:{
+                    type:"boolean",
+                    default:false
+                },
+                ReplyToId:{
+                    type: "varchar",
+                    length: 32,
+                    nullable: true,
+                    unique:false
+                },
+                ThreadId:{
+                    type: "varchar",
+                    length: 32,
+                    nullable: true, 
+                },
+                ThreadStart:{
+                    type:"boolean",
+                    default:false
                 }
             },
             relations: {
@@ -40,6 +59,20 @@ export class TeamChannelChatsSchema extends Schema<TeamChannelChats> {
                     joinColumn: { name: GetKey<TeamChannelChats>("UserId"),referencedColumnName:GetKey<Users>("Id") }, 
                     onDelete: "RESTRICT",
                 },
+                ReplyTo: {
+                    type: "many-to-one",
+                    target: TeamChannelChats.name,
+                    joinColumn: { name: GetKey<TeamChannelChats>("ReplyToId"),referencedColumnName:GetKey<TeamChannelChats>("Id") }, 
+                    inverseSide: GetKey<TeamChannelChats>("Replies"),
+                    onDelete: "CASCADE",
+                },
+                Replies:{
+                    type: "one-to-many",
+                    target: TeamChannelChats.name,
+                    joinColumn: { name: GetKey<TeamChannelChats>("ReplyToId"),referencedColumnName:GetKey<TeamChannelChats>("Id") }, 
+                    inverseSide: GetKey<TeamChannelChats>("ReplyTo"),
+                    onDelete: "CASCADE",
+                }
             },
         })
     }

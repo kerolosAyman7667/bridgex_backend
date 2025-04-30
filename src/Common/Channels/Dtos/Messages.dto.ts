@@ -13,7 +13,12 @@ export class MessagesDto
     @ApiProperty()
     User:UserPreviewDto;
 
+    @AutoMap(()=>MessagesDto)
     @ApiProperty()
+    ReplyTo?:MessagesDto
+
+    @ApiProperty()
+    @AutoMap()
     Message:string
 
     @AutoMap()

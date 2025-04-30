@@ -13,3 +13,8 @@ export class TeamSearchId
         this.teamId = teamId
     }
 }
+
+export class TeamSearchIdWithChannelId extends TeamSearchId{
+    @IsString()
+    public channelId: string
+}

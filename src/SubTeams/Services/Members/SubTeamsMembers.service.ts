@@ -36,6 +36,30 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
     @InjectMapper()
     private readonly mapper: Mapper;
 
+    async IsMemberExistByTeam(teamId: string, userId: string): Promise<{ IsLeader: boolean; IsMember: boolean; }> 
+    {
+        const dataReturn:{IsLeader:boolean,IsMember:boolean} = {IsLeader:false,IsMember:false};
+        try
+        {
+            await this.teamService.VerifyLeaderId(teamId,userId);
+            dataReturn.IsLeader = true;
+        }catch(ex)
+        {
+            const user = await this.membersRepo.FindOne({SubTeam:{TeamId:teamId},UserId:userId,LeaveDate:IsNull(),JoinDate:Not(IsNull())},{SubTeam:true});
+            if(user)
+            {
+                dataReturn.IsMember = true;
+                dataReturn.IsLeader = user.IsHead;
+            }
+            else
+            {
+                dataReturn.IsMember = false;
+            }
+        }
+
+        return dataReturn;
+    }
+
     async IsMemberExist(subTeamId: string, userId: string): Promise<{IsLeader:boolean,IsMember:boolean}> {
         const dataReturn:{IsLeader:boolean,IsMember:boolean} = {IsLeader:false,IsMember:false};
         const subTeam = await this.subTeamService.GetSubTeamById(subTeamId);

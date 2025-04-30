@@ -10,4 +10,8 @@ export class ChannelDto
     @AutoMap()
     @ApiProperty()
     Name: string
+
+    @AutoMap()
+    @ApiProperty()
+    CreatedAt: Date
 }

@@ -227,6 +227,17 @@ export class LearningPhaseService implements ILearningPhaseService {
         resource.File = `${LearningPhaseResourcesFileOptions.Dest}${fileUpload[0].FileName}`
         resource.SectionId = section.Id;
 
+        // try
+        // {
+        //     const aiData:CreateAssetResponseDto = await ;
+        //     resource.AIAssetId = aiData.asset_id;
+        // }catch(ex)
+        // {
+        //     this.fileService.Remove(fileUpload[0].FilePath,LearningPhaseResourcesFileOptions,true);
+        //     throw ex;
+        // }
+
+        await this.resourcesRepo.Insert(resource)
         this.aiService.AddAsset(subTeam.KnowledgeBaseId,fileUpload[0].FilePath).then(async (value)=>{
             try
             {
@@ -240,19 +251,7 @@ export class LearningPhaseService implements ILearningPhaseService {
         }).catch((ex)=>{
             console.log(ex);
         })
-
-        // try
-        // {
-        //     const aiData:CreateAssetResponseDto = await ;
-        //     resource.AIAssetId = aiData.asset_id;
-        // }catch(ex)
-        // {
-        //     this.fileService.Remove(fileUpload[0].FilePath,LearningPhaseResourcesFileOptions,true);
-        //     throw ex;
-        // }
-
-        await this.resourcesRepo.Insert(resource)
-
+        
         const returnDto = new LearningPhaseResourceDto()
         returnDto.File = resource.File;
         returnDto.Name = resource.Name;

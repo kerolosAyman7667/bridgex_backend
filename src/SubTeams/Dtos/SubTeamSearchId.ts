@@ -51,3 +51,8 @@ export class SubTeamSearchIdWithSectionResource extends SubTeamSearchIdWithSecti
     @IsString()
     public resourceId: string
 }
+
+export class SubTeamSearchIdWithChannelId extends SubTeamSearchId{
+    @IsString()
+    public channelId: string
+}

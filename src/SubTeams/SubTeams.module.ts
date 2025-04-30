@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { DatabaseModule } from "src/Infrastructure/Database/Database.module";
 import { SubTeams } from "./Models/SubTeams.entity";
 import { SubTeamsMedia } from "./Models/SubTeamsMedia.entity";
@@ -21,15 +21,19 @@ import { UserProgress } from "./Models/LearningPhase/UserProgress.entity";
 import { ILearningPhaseServiceProvider } from "./Services/LearningPhase/ILearningPhase.service";
 import { LearningPhaseController } from "./Controllers/LearningPhase.controller";
 import { AIModule } from "src/AIModule/AI.module";
+import { ISubTeamsChannelServiceProvider } from "./Services/Channels/ISubTeamsChannel.service";
+import { SubTeamChannelController } from "./Controllers/SubTeamChannel.controller";
+import { SubTeamChannelChatsController } from "./Controllers/SubTeamChannelChats.controller";
 
 @Module({
     imports:[
        DatabaseModule.forFeature([SubTeams,SubTeamsMedia,SubTeamImages,SubTeamMembers,SubTeamChannelChats,SubTeamChannels,
         LearningPhaseSections,LearningPhaseResources,LearningPhaseVideos,UserProgress
        ]),
-       UsersModule,TeamsModule,AIModule
+       UsersModule,forwardRef(()=> TeamsModule),AIModule
     ],
-    controllers:[SubTeamsController, SubTeamImagesGet, SubTeamMembersController, LearningPhaseController],
-    providers:[ISubTeamsServiceProvider,ISubTeamsMembersServiceProvider,ILearningPhaseServiceProvider,SubTeamsProfile],
+    controllers:[SubTeamsController, SubTeamImagesGet, SubTeamMembersController, LearningPhaseController,SubTeamChannelController,SubTeamChannelChatsController],
+    providers:[ISubTeamsServiceProvider,ISubTeamsMembersServiceProvider,ILearningPhaseServiceProvider,SubTeamsProfile,ISubTeamsChannelServiceProvider],
+    exports:[ISubTeamsMembersServiceProvider]
 })
 export class SubTeamsModule{}

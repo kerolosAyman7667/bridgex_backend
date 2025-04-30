@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsNumber, Max, Min } from "class-validator";
 
-enum SortType{
+export enum SortType{
     DESC="desc",ASC="asc"
 }
 

@@ -18,6 +18,10 @@ import { LearningPhaseResources } from '../Models/LearningPhase/LearningPhaseRes
 import { LearningPhaseVideos } from '../Models/LearningPhase/LearningPhaseVideos.entity';
 import { LearningPhaseVideoDto } from '../Dtos/LearningPhase/LearningPhaseVideo.dto';
 import { LearningPhaseResourceDto } from '../Dtos/LearningPhase/LearningPhaseResourceDto.dto';
+import { SubTeamChannels } from '../Models/SubTeamChannels.entity';
+import { ChannelDto } from 'src/Common/Channels/Dtos/Channel.dto';
+import { MessagesDto } from 'src/Common/Channels/Dtos/Messages.dto';
+import { SubTeamChannelChats } from '../Models/SubTeamChannelChats.entity';
 
 @Injectable()
 export class SubTeamsProfile extends AutomapperProfile {
@@ -67,6 +71,8 @@ export class SubTeamsProfile extends AutomapperProfile {
         )
       );
       createMap(mapper, LearningPhaseSections, LearningPhaseSectionDto);
+      createMap(mapper, SubTeamChannels, ChannelDto);
+      createMap(mapper, SubTeamChannelChats, MessagesDto);
     };
   }
 

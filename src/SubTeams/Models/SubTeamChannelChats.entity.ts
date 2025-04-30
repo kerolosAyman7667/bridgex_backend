@@ -5,8 +5,28 @@ import { Users } from "src/Users/Models/Users.entity";
 
 export class SubTeamChannelChats extends EntityBase 
 {
-    @AutoMap()
     Text!:string
+
+    @AutoMap()
+    get Message():string
+    {
+        return this.Deleted ? "Deleted message" : this.Text;
+    }
+
+    @AutoMap()
+    ThreadId?:string = null
+
+    @AutoMap()
+    ThreadStart:boolean = false
+
+    @AutoMap()
+    ReplyToId?:string = null
+
+    @AutoMap()
+    ReplyTo?:SubTeamChannelChats
+    
+    @AutoMap()
+    Replies?:SubTeamChannelChats[]
 
     @AutoMap()
     UserId!: string
@@ -16,6 +36,8 @@ export class SubTeamChannelChats extends EntityBase
 
     @AutoMap()
     ChannelId!:string
+
+    Deleted:boolean = false
 
     @AutoMap(()=> SubTeamChannels)
     Channel?:SubTeamChannels
