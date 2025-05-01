@@ -4,6 +4,8 @@ import { SubTeams } from "../SubTeams.entity";
 import { SubTeamChannels } from "../SubTeamChannels.entity";
 import { SubTeamMembers } from "../SubTeamMembers.entity";
 import { Users } from "src/Users/Models/Users.entity";
+import { Communities } from "src/Communities/Models/Communities.entity";
+import { Teams } from "src/Teams/Models/Teams.entity";
 
 export class SubTeamMembersSchema extends Schema<SubTeamMembers> {
     constructor() {
@@ -22,6 +24,16 @@ export class SubTeamMembersSchema extends Schema<SubTeamMembers> {
                     nullable: false,
                 },
                 SubTeamId:{
+                    type: "varchar",
+                    length: 32,
+                    nullable: false,
+                },
+                TeamId:{
+                    type: "varchar",
+                    length: 32,
+                    nullable: false,
+                },
+                CommunityId:{
                     type: "varchar",
                     length: 32,
                     nullable: false,
@@ -51,6 +63,20 @@ export class SubTeamMembersSchema extends Schema<SubTeamMembers> {
                     target: Users.name,
                     joinColumn: { name: GetKey<SubTeamMembers>("UserId"),referencedColumnName:GetKey<Users>("Id")}, 
                     inverseSide:GetKey<Users>("SubTeams"),
+                    onDelete: "CASCADE",  
+                },               
+                Community: {
+                    type: "many-to-one",
+                    target: Communities.name,
+                    joinColumn: { name: GetKey<SubTeamMembers>("CommunityId"),referencedColumnName:GetKey<Communities>("Id")}, 
+                    inverseSide:GetKey<Communities>("Members"),
+                    onDelete: "CASCADE",
+                },
+                Team:{
+                    type: "many-to-one",
+                    target: Teams.name,
+                    joinColumn: { name: GetKey<SubTeamMembers>("TeamId"),referencedColumnName:GetKey<Teams>("Id")}, 
+                    inverseSide:GetKey<Teams>("Members"),
                     onDelete: "CASCADE",  
                 }
             },

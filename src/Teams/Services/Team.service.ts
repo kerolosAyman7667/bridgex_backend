@@ -119,7 +119,7 @@ export class TeamService implements ITeamsService {
         //First checks if the community already exist
         const community = await this.communityService.GetCommunity(communityId);
 
-        const team: Teams[] = await this.teamRepo.FindAll({ CommunityId: community.Id },{Leader:true,SubTeams:{Members:true}})
+        const team: Teams[] = await this.teamRepo.FindAll({ CommunityId: community.Id },{Leader:true,Members:true})
 
         return await this.mapper.mapArrayAsync(team, Teams, TeamCardDto)
     }

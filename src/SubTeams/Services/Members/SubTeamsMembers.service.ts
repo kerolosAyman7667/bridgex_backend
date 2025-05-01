@@ -124,11 +124,13 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
 
         const newMember = new SubTeamMembers();
         newMember.UserId = user.Id;
-        newMember.SubTeamId = subTeam.Id
+        newMember.SubTeamId = subTeam.Id;
         newMember.LeaveDate = null;
-        newMember.JoinDate = null
-        newMember.IsHead = isHead
-        newMember.JoinDate = joinDate
+        newMember.JoinDate = null;
+        newMember.IsHead = isHead;
+        newMember.JoinDate = joinDate;
+        newMember.CommunityId = subTeam.CommunityId;
+        newMember.TeamId = subTeam.TeamId;
 
         if(isHead)
         {
