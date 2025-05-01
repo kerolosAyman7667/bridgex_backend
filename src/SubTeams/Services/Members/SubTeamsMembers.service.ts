@@ -2,7 +2,7 @@ import { IGenericRepo } from "src/Common/Generic/Contracts/IGenericRepo";
 import { SubTeamMembers } from "../../Models/SubTeamMembers.entity";
 import { ISubTeamsMembersService } from "./ISubTeamMembers.service";
 import { ISubTeamsService } from "../SubTeams/ISubTeams.service";
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Scope } from "@nestjs/common";
+import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException, Scope } from "@nestjs/common";
 import { UsersService } from "src/Users/Services/Users.service";
 import { SubTeams } from "../../Models/SubTeams.entity";
 import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto";
@@ -15,6 +15,9 @@ import { JoinLinkDto } from "../../Dtos/SubTeamMembersDtos/JoinLink.dto";
 import { Users } from "src/Users/Models/Users.entity";
 import { ITeamsService } from "src/Teams/Services/ITeams.service";
 import { INotification } from "src/Common/Generic/Contracts/INotificationService";
+import { IsMemberExistDto } from "src/SubTeams/Dtos/SubTeamMembersDtos/IsMemberExist.dto";
+import { ISubTeamsChannelService } from "../Channels/ISubTeamsChannel.service";
+import { ITeamsChannelService } from "src/Teams/Services/Channels/ITeamChannel.service";
 
 //TODO make rule for the verify if the member IsHead
 /**
@@ -29,6 +32,9 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
     @Inject(`REPO_${SubTeamMembers.name.toUpperCase()}`)
     private readonly membersRepo: IGenericRepo<SubTeamMembers>;
 
+    // @Inject(ISubTeamsChannelService)
+    // private readonly subTeamChannelService: ISubTeamsChannelService;
+
     @Inject(UsersService)
     private readonly userService: UsersService;
     
@@ -41,7 +47,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
     @Inject(INotification)
     private readonly notiService:INotification
 
-    async IsMemberExistByTeam(teamId: string, userId: string): Promise<{ IsLeader: boolean; IsMember: boolean; }> 
+    async IsMemberExistByTeam(teamId: string, userId: string): Promise<IsMemberExistDto> 
     {
         const dataReturn:{IsLeader:boolean,IsMember:boolean} = {IsLeader:false,IsMember:false};
         try
@@ -65,7 +71,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         return dataReturn;
     }
 
-    async IsMemberExist(subTeamId: string, userId: string): Promise<{IsLeader:boolean,IsMember:boolean}> {
+    async IsMemberExist(subTeamId: string, userId: string): Promise<IsMemberExistDto> {
         const dataReturn:{IsLeader:boolean,IsMember:boolean} = {IsLeader:false,IsMember:false};
         const subTeam = await this.subTeamService.GetSubTeamById(subTeamId);
 
@@ -88,6 +94,92 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         }
 
         return dataReturn;
+    }
+
+    async IsMemberExistByChannelTeam(channelId: string, userId: string): Promise<IsMemberExistDto> 
+    {   
+        const user = await this.userService.FindOne([
+            {CommunityLeaders:{LeaderId:userId,Teams:{Channels:{Id:channelId}}}},
+            {TeamActiveLeaders:{LeaderId:userId,Channels:{Id:channelId}}},
+            {SubTeams:{UserId:userId,LeaveDate:IsNull(),JoinDate:Not(IsNull()),SubTeam:{Team:{Channels:{Id:channelId}}}}}
+        ],false,{
+            CommunityLeaders:{Teams:{Channels:true}},
+            TeamActiveLeaders:{Channels:true},
+            SubTeams:{SubTeam:{Team:{Channels:true}}}
+        })
+        
+        if(!user)
+        {
+            return new IsMemberExistDto()
+        }else
+        {
+            const isLeader:boolean = 
+            user.CommunityLeaders.length > 0 
+            || user.TeamActiveLeaders.length > 0 
+            const returnedData =  new IsMemberExistDto()
+
+            if(isLeader)
+            {
+                returnedData.IsLeader = true
+            } 
+            else
+            {
+                if(user.SubTeams.length > 0)
+                {
+                    returnedData.IsMember = true;
+                    if(user.SubTeams[0].IsHead)
+                    {
+                        returnedData.IsLeader = true;
+                    }
+                }
+            }
+            return returnedData;
+        }
+    }
+
+    async IsMemberExistByChannelSubTeam(channelId: string, userId: string): Promise<IsMemberExistDto> 
+    {
+        //const channel = await this.subTeamChannelService.GetChannelById(channelId)
+
+        //return await this.IsMemberExist("channel.SubTeamId",userId)
+
+        const user = await this.userService.FindOne([
+            {CommunityLeaders:{LeaderId:userId,SubTeams:{Channels:{Id:channelId}}}},
+            {TeamActiveLeaders:{LeaderId:userId,SubTeams:{Channels:{Id:channelId}}}},
+            {SubTeams:{UserId:userId,LeaveDate:IsNull(),JoinDate:Not(IsNull()),SubTeam:{Channels:{Id:channelId}}}}
+        ],false,{
+            CommunityLeaders:{SubTeams:{Channels:true}},
+            TeamActiveLeaders:{SubTeams:{Channels:true}},
+            SubTeams:{SubTeam:{Channels:true}}
+        })
+        
+        if(!user)
+        {
+            return new IsMemberExistDto()
+        }else
+        {
+            const isLeader:boolean = 
+            user.CommunityLeaders.length > 0 
+            || user.TeamActiveLeaders.length > 0 
+            const returnedData =  new IsMemberExistDto()
+
+            if(isLeader)
+            {
+                returnedData.IsLeader = true
+            } 
+            else
+            {
+                if(user.SubTeams.length > 0)
+                {
+                    returnedData.IsMember = true;
+                    if(user.SubTeams[0].IsHead)
+                    {
+                        returnedData.IsLeader = true;
+                    }
+                }
+            }
+            return returnedData;
+        }
     }
 
     async Join(subTeamId: string, userId: string): Promise<JoinLinkDto> {

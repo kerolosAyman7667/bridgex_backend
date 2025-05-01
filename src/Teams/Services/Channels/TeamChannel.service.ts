@@ -21,7 +21,6 @@ import { TeamChannelChats } from "src/Teams/Models/TeamChannelChats.entity";
 import Redis from "ioredis";
 import { RedisProvidersEnum, RedisProvidersSubs } from "src/Infrastructure/Events/EventConfig/RedisProviders";
 import { SentMessageChatDto, ThreadChatDto } from "src/Chat/Dtos/SentMessageChat.dto";
-import { SubTeamChannelChats } from "src/SubTeams/Models/SubTeamChannelChats.entity";
 
 @Injectable({scope:Scope.REQUEST})
 export class TeamsChannelService implements ITeamsChannelService {
@@ -58,6 +57,16 @@ export class TeamsChannelService implements ITeamsChannelService {
     async GetChannels(channelIds: string[]): Promise<ChannelDto[]> {
         const data = await this.channelsRepo.FindAll({Id:In(channelIds)});
         return await this.mapper.mapArrayAsync(data,TeamChannels,ChannelDto);
+    }
+
+    async GetChannelById(channelId: string): Promise<TeamChannels> {
+        const data = await this.channelsRepo.FindById(channelId);
+        if(!data)
+        {
+            throw new NotFoundException("Team not found")
+        }
+
+        return data;
     }
 
     async AddChannel(searchId: TeamSearchId, dto: ChannelCreateDto, leaderId: string): Promise<ChannelDto> {

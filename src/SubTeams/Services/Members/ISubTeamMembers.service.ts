@@ -3,6 +3,7 @@ import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto
 import { MemberReturnDto } from "../../Dtos/SubTeamMembersDtos/MemberReturn.dto";
 import { MemberSearchDto } from "../../Dtos/SubTeamMembersDtos/MemberSearch.dto";
 import { JoinLinkDto } from "../../Dtos/SubTeamMembersDtos/JoinLink.dto";
+import { IsMemberExistDto } from "src/SubTeams/Dtos/SubTeamMembersDtos/IsMemberExist.dto";
 
 export interface ISubTeamsMembersService {
     /**
@@ -84,16 +85,31 @@ export interface ISubTeamsMembersService {
     /**
      * @param {string} subTeamId - The ID of the team
      * @param userId 
-     * @returns { Promise<{IsLeader:boolean,IsMember:boolean}>} is the user exist in the sub team or not
+     * @returns { Promise<IsMemberExistDto>} is the user exist in the sub team or not
      */
-    IsMemberExist(subTeamId: string, userId: string) : Promise<{IsLeader:boolean,IsMember:boolean}>
+    IsMemberExist(subTeamId: string, userId: string) : Promise<IsMemberExistDto>
 
     /**
      * @param {string} teamId - The ID of the team
      * @param userId 
-     * @returns { Promise<{IsLeader:boolean,IsMember:boolean}>} is the user exist in the sub team or not
+     * @returns { Promise<IsMemberExistDto>} is the user exist in the sub team or not
      */
-    IsMemberExistByTeam(teamId: string, userId: string) : Promise<{IsLeader:boolean,IsMember:boolean}>
+    IsMemberExistByTeam(teamId: string, userId: string) : Promise<IsMemberExistDto>
+
+    /**
+     * @param {string} channelId - The ID of the channel
+     * @param userId 
+     * @param isSubTeam 
+     * @returns { Promise<IsMemberExistDto>} is the user exist in the sub team or not
+     */
+    IsMemberExistByChannelTeam(channelId: string, userId: string) : Promise<IsMemberExistDto>
+
+        /**
+     * @param {string} channelId - The ID of the channel
+     * @param userId 
+     * @returns { Promise<IsMemberExistDto>} is the user exist in the sub team or not
+     */
+    IsMemberExistByChannelSubTeam(channelId: string, userId: string) : Promise<IsMemberExistDto>
 }
 
 export const ISubTeamsMembersService = Symbol("ISubTeamsMembersService")

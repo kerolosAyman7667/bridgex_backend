@@ -60,6 +60,16 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
         return await this.mapper.mapArrayAsync(data,SubTeamChannels,ChannelDto);
     }
 
+    async GetChannelById(channelId: string): Promise<SubTeamChannels> {
+        const data = await this.channelsRepo.FindById(channelId);
+        if(!data)
+        {
+            throw new NotFoundException("Channel not found")
+        }
+        return data
+    }
+
+
     async AddChannel(searchId: SubTeamSearchId, dto: ChannelCreateDto, leaderId: string): Promise<ChannelDto> {
         const subTeam = await this.subTeamService.VerifyLeaderId(searchId.subTeamId, leaderId);
         const isExistChannel = await this.channelsRepo.FindAll(

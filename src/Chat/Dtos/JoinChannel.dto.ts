@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class JoinChannelDto
 {
@@ -11,4 +11,7 @@ export class JoinChannelDto
     @IsOptional()
     @Transform(({value})=> value ? value : null)
     ThreadId:string = null
+
+    @IsBoolean()
+    IsSubTeam:boolean = true
 }

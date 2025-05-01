@@ -2,6 +2,7 @@ import { TeamSearchId } from "src/Teams/Dtos/TeamSearchId";
 import { IChannelService } from "src/Common/Channels/IChannel.service";
 import { ChannelDto } from "src/Common/Channels/Dtos/Channel.dto";
 import { TeamsChannelService } from "./TeamChannel.service";
+import { TeamChannels } from "src/Teams/Models/TeamChannels.entity";
 
 export interface ITeamsChannelService extends IChannelService<TeamSearchId>{
     /**
@@ -11,6 +12,8 @@ export interface ITeamsChannelService extends IChannelService<TeamSearchId>{
      * @throws {NotFoundException} if team is not found 
      */
     GetByTeam(teamId: TeamSearchId): Promise<ChannelDto[]>;
+
+    GetChannelById(channelId: string): Promise<TeamChannels>;
 } 
 
 export const ITeamsChannelService = Symbol("ITeamsChannelService")

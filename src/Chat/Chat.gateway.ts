@@ -1,4 +1,4 @@
-import { forwardRef, Inject, UseFilters, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ForbiddenException, forwardRef, INestApplicationContext, Inject, OnApplicationShutdown, UseFilters, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
     WebSocketGateway,
     SubscribeMessage,
@@ -18,6 +18,7 @@ import { RedisProvidersEnum, RedisProvidersSubs } from 'src/Infrastructure/Event
 import { DeletedChatDto, SentMessageChatDto, ThreadChatDto } from './Dtos/SentMessageChat.dto';
 import { ISubTeamsMembersService } from 'src/SubTeams/Services/Members/ISubTeamMembers.service';
 import { ModuleRef } from '@nestjs/core';
+import { IsMemberExistDto } from 'src/SubTeams/Dtos/SubTeamMembersDtos/IsMemberExist.dto';
 
 
 @WebSocketGateway({ cors: true })
@@ -25,22 +26,32 @@ import { ModuleRef } from '@nestjs/core';
 @UseFilters(HttpExceptionToWsException)
 @UseGuards(JWTWSGuard)
 @UsePipes(new ValidationPipe())
-export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, OnApplicationShutdown {
     @WebSocketServer() server: Server;
-    
-    constructor(
-        // @Inject(ISubTeamsMembersService)
-        // private readonly membersService:ISubTeamsMembersService,
-        @Inject(RedisProvidersEnum.SUB) 
-        private redisSubClient: Redis,
-    ) 
-    { 
-        redisSubClient.subscribe(RedisProvidersSubs.CHAT);
-        redisSubClient.subscribe(RedisProvidersSubs.DELETED);
-        redisSubClient.subscribe(RedisProvidersSubs.NEWTHREAD);
+
+    private redisSubClient: Redis
+
+    @Inject(ISubTeamsMembersService) 
+    private membersService:ISubTeamsMembersService
+
+    @Inject(ModuleRef)
+    private readonly moduleRef:ModuleRef
+
+
+    async onApplicationShutdown(signal?: string) {
+        await this.redisSubClient?.quit()
     }
 
     async afterInit(server: any) {
+        if(!this.redisSubClient)
+        {
+            this.redisSubClient = this.moduleRef.get<Redis>(RedisProvidersEnum.SUB, { strict: false });
+        }
+
+        this.redisSubClient.subscribe(RedisProvidersSubs.CHAT);
+        this.redisSubClient.subscribe(RedisProvidersSubs.DELETED);
+        this.redisSubClient.subscribe(RedisProvidersSubs.NEWTHREAD); 
+        
         this.redisSubClient.on("message", (channel, message) => {
             if (channel === RedisProvidersSubs.CHAT) 
             {
@@ -77,6 +88,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     async handleJoinRoom(@MessageBody() data: JoinChannelDto, @ConnectedSocket() client: Socket) {
         data.ThreadId = data.ThreadId ? data.ThreadId : null
         const id = `${data.ChannelId}_${data.ThreadId}`
+        let is:IsMemberExistDto =  new IsMemberExistDto();
+        if(data.IsSubTeam)
+        {
+            is = await this.membersService.IsMemberExistByChannelSubTeam(data.ChannelId,(client as any)?.user.Id)
+        }else
+        {
+            is = await this.membersService.IsMemberExistByChannelTeam(data.ChannelId,(client as any)?.user.Id)
+        }
+        if(!is.IsLeader && !is.IsMember)
+        {
+            throw new ForbiddenException()
+        }
         this.handleRoomBasic(id,client,false)
     }
 
