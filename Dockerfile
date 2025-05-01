@@ -5,9 +5,9 @@ WORKDIR /app/temp
 COPY ./package*.json ./
 RUN npm install 
 RUN npm install -g @nestjs/cli --save
-RUN npx typedoc --entryPoints src --entryPointStrategy expand --out docs
 
 COPY . .
+RUN npx typedoc --entryPoints src --entryPointStrategy expand --out docs
 
 RUN npm run build
 
