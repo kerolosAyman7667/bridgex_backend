@@ -21,8 +21,9 @@ import { TeamsConstants } from "../TeamsConstants";
 import { TeamImagesFileOptions } from "src/Common/FileUpload/FileTypes/TeamImages.file";
 import { TeamLeaders } from "../Models/TeamLeaders.entity";
 import { Users } from "src/Users/Models/Users.entity";
-import { IsNull, Raw } from "typeorm";
+import { IsNull, Not, Raw } from "typeorm";
 import { INotification } from "src/Common/Generic/Contracts/INotificationService";
+import { IsMemberExistDto } from "src/Common/DTOs/IsMemberExist.dto";
 
 //TODO verify the the team leader is not the Community leader
 /**
@@ -256,8 +257,8 @@ export class TeamService implements ITeamsService {
         await this.fileService.Remove(image.File, TeamImagesFileOptions, false)
     }
 
-    async VerifyLeaderId(teamId: string, leaderId: string): Promise<Teams> {
-        const team: Teams = await this.teamRepo.FindById(teamId, { Community: true })
+    async VerifyLeaderId(teamId: string, leaderId: string,teamExist?: Teams ): Promise<Teams> {
+        const team: Teams = teamExist ? teamExist : await this.teamRepo.FindById(teamId, { Community: true })
         if (team === null) 
         {
             throw new NotFoundException("Team Not Found")
@@ -268,5 +269,30 @@ export class TeamService implements ITeamsService {
         }
 
         return team;
+    }
+
+    async IsMemberExist(id: string, userId: string): Promise<IsMemberExistDto> {
+        const dto = new IsMemberExistDto()
+        const team: Teams = await this.teamRepo.FindOne([
+            {Members:{TeamId:id,UserId:userId,LeaveDate:IsNull(),JoinDate:Not(IsNull())},Id:id},
+            {Id:id}
+        ],{Members:true,Community:true})
+
+        if(team && team.Members.length > 0)
+        {
+            dto.IsMember = true
+            dto.IsLeader = team.Members[0].IsHead
+        }
+        else if(team)
+        {
+            try
+            {
+                await this.VerifyLeaderId(id,userId,team)
+                dto.IsLeader = true;
+            }catch(err)
+            {}
+        }
+
+        return dto;
     }
 }

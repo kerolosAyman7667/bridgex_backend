@@ -14,7 +14,6 @@ import { LogoDto } from "src/Common/DTOs/Logo.dto";
 import { ImagesDto } from "src/Common/DTOs/Images.dto";
 import { ImageCreateDto } from "src/Common/DTOs/ImageCreate.dto";
 import { OptionalGuard } from "src/AuthModule/Gaurds/OptionalGuard";
-import { ISubTeamsMembersService } from "src/SubTeams/Services/Members/ISubTeamMembers.service";
 
 @ApiTags('teams')
 @Controller('communities/:communityId/teams')
@@ -23,8 +22,6 @@ export class TeamsController {
     constructor(
         @Inject(ITeamsService)
         private readonly service: ITeamsService,
-        @Inject(ISubTeamsMembersService)
-        private readonly membersService: ISubTeamsMembersService
     ) { }
 
     /**
@@ -81,7 +78,7 @@ export class TeamsController {
         const c = (await this.service.GetTeam(id,communityId)) as TeamWithCanModifyDto;
         if(payload)
         {
-            const isMember = await this.membersService.IsMemberExistByTeam(c.Id,payload.UserId)
+            const isMember = await this.service.IsMemberExist(c.Id,payload.UserId)
             c.CanModify = isMember.IsLeader 
             // c.IsMember =  isMember.IsMember
             // if(!isMember.IsMember && !isMember.IsLeader)
