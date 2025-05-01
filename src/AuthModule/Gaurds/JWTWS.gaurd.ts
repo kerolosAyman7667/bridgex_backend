@@ -2,13 +2,14 @@ import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/commo
 import { WsException } from '@nestjs/websockets';
 import * as jwt from 'jsonwebtoken';
 import { JwtConfigService } from '../Services/JwtConfig.service';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class JWTWSGuard implements CanActivate {
     private readonly config: JwtConfigService = new JwtConfigService();
 
-    canActivate(context: ExecutionContext): boolean {
-        const client = context.switchToWs().getClient();
+    canActivate(context?: ExecutionContext,clientSocket?:Socket): boolean {
+        const client = clientSocket ? clientSocket : context.switchToWs().getClient();
         const token = client.handshake?.headers?.token;
 
         if (!token) throw new WsException('Missing auth token');

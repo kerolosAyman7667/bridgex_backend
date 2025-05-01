@@ -16,18 +16,16 @@ import { JWTWSGuard } from 'src/AuthModule/Gaurds/JWTWS.gaurd';
 import Redis from 'ioredis';
 import { RedisProvidersEnum, RedisProvidersSubs } from 'src/Infrastructure/Events/EventConfig/RedisProviders';
 import { DeletedChatDto, SentMessageChatDto, ThreadChatDto } from './Dtos/SentMessageChat.dto';
-import { ISubTeamsMembersService } from 'src/SubTeams/Services/Members/ISubTeamMembers.service';
-import { ModuleRef } from '@nestjs/core';
 
 
 @WebSocketGateway({ cors: true })
 @UseFilters(SocketExceptionFilter)
 @UseFilters(HttpExceptionToWsException)
-@UseGuards(JWTWSGuard)
+//@UseGuards(JWTWSGuard)
 @UsePipes(new ValidationPipe())
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer() server: Server;
-    
+    private readonly jwtGaurd:JWTWSGuard = new JWTWSGuard()
     constructor(
         // @Inject(ISubTeamsMembersService)
         // private readonly membersService:ISubTeamsMembersService,
@@ -62,6 +60,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     handleConnection(client: Socket) {
         console.log(`Client connected: ${client.id}`);
+        this.jwtGaurd.canActivate(null,client)
     }
 
     handleDisconnect(client: Socket) {
@@ -77,6 +76,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     async handleJoinRoom(@MessageBody() data: JoinChannelDto, @ConnectedSocket() client: Socket) {
         data.ThreadId = data.ThreadId ? data.ThreadId : null
         const id = `${data.ChannelId}_${data.ThreadId}`
+
         this.handleRoomBasic(id,client,false)
     }
 
@@ -84,6 +84,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     async handleLeaveRoom(@MessageBody() data: JoinChannelDto, @ConnectedSocket() client: Socket) {
         data.ThreadId = data.ThreadId ? data.ThreadId : null
         const id = `${data.ChannelId}_${data.ThreadId}`
+
         this.handleRoomBasic(id,client,true)
     }
 
