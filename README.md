@@ -1,73 +1,119 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# NestJS Application
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A robust, modular, and scalable NestJS application with JWT-based authentication, automatic API docs, and helpful development scripts.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Table of Contents
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Prerequisites](#prerequisites)  
+- [JWT Authentication Setup](#jwt-authentication-setup)  
+- [Environment Configuration](#environment-configuration)  
+- [Running the Application](#running-the-application)  
+- [API Documentation](#api-documentation)  
+- [Available NPM Scripts](#available-npm-scripts)  
+- [License](#license)  
 
-## Installation
+---
 
-```bash
-$ npm install
-```
+## Prerequisites
 
-## Running the app
+- **Node.js** ≥ 14.x  
+- **npm** ≥ 6.x  
+- **Nest CLI** ≥ 8.x  
+- **OpenSSL** (for RSA key generation)  
+
+---
+
+## JWT Authentication Setup
+
+Before running the application, generate your RSA key pair for signing and verifying JWT tokens:
 
 ```bash
-# development
-$ npm run start
+# Generate a 2048-bit RSA private key
+openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# Extract the RSA public key
+openssl rsa -in private.pem -pubout -out public.pem
 ```
 
-## Test
+---
 
-```bash
-# unit tests
-$ npm run test
+## Environment Configuration
 
-# e2e tests
-$ npm run test:e2e
+you can see full example at .env.example
 
-# test coverage
-$ npm run test:cov
-```
+PORT= This is the port that app will run on recommended to be 8000 changes it requires changes at the docker compose
 
-## Support
+Database configs
+DBCONNECTIONSTRING= The Database must be mariadb/mysql connection string
+REDISURL= The Redis connection string
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+JWT configs
+JWTEXPIREDURATION= JWT expiration duration as number determined hours or second by the JWTEXPIREDURATIONTYPE env
+JWTEXPIREDURATIONTYPE= h for Hours, s for seconds
+ALGORITHM=aes-256-cbc
+ENCRYPT_SECRET_KEY=SECRETKEY
+ENCRYPT_IV=IV
 
-## Stay in touch
+Email config
+EMAILHOST= The email host name
+EMAILPORT= Email host port 
+EMAILUSER= Email user itself that will send the email 
+EMAILPASS= Email user password
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Verify and reset pass configs config
+CODETTLINMINUTES= Code Time to live on redis
+NEXTTRYINSECONDS= Nex retry in seconds 
 
-## License
+External Urls  
+FRONTEND_DOMAIN= Frontend domain name
+FRONTEND_PORT= Frontend Port ( so if it runs on whatever it will work)
+FRONTEND_PROTOCOL= Frontend Protocol ( so if it runs on dev environment or no ssl it will work)
+FRONTEND_VERIFY_RELATIVE_URL=signUp/verifyEmail # DON'T change
+AIBASEURL=http://abdullahabaza.me/api # DON'T change
 
-Nest is [MIT licensed](LICENSE).
+---
+
+## Running the Application
+You can run the app with docker or without 
+
+1- With Docker:
+Attach to the image the public and private key
+    - ./private.pem:/app/private.pem
+    - ./public.pem:/app/public.pem
+and run it 
+the image name : bridgex/backend:latest
+
+2- without:
+Just clone the app from https://github.com/dev-bridgex/backend.git
+Then install dependencies and run the JWT Authentication Setup
+
+## API Documentation
+This application exposes two sets of documentation:
+
+API Docs (Swagger UI):
+Accessible at:
+  http://localhost:<PORT>/docs
+
+System/Internal Docs:
+Accessible at:  
+  http://localhost:<PORT>/app/docs
+
+or at bridgex account postman a full collections for each module
+
+## Available NPM Scripts
+
+Migration:
+migrations will be found at src\Infrastructure\Database\Migrations
+To generate migration: npm run migration:generate
+To run migration: npm run migration:run
+To revert migration: npm run migration:revert
+Note: in production instead of npm run migration:run RUN npm run migration:runprod instead
+
+Other:
+npm run copylogo : this command to copy the default logo to the dist 
+it runs auto with npm run build and others ( if changes happened need to restart app )
+
+npm run copytemps : this command to copy the email temps to the dist 
+it runs auto with npm run build and others ( if changes happened need to restart app )

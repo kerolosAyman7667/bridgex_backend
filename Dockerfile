@@ -5,6 +5,7 @@ WORKDIR /app/temp
 COPY ./package*.json ./
 RUN npm install 
 RUN npm install -g @nestjs/cli --save
+RUN npx typedoc --entryPoints src --entryPointStrategy expand --out docs
 
 COPY . .
 
@@ -15,6 +16,7 @@ FROM node:22.8.0-alpine AS build
 WORKDIR /app
 
 COPY --from=stage /app/temp/dist ./dist
+COPY --from=stage /app/temp/docs ./docs
 COPY --from=stage /app/temp/package*.json .
 RUN npm install --omit=dev
 

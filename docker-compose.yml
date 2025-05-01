@@ -12,6 +12,7 @@ services:
       - ./public.pem:/app/public.pem
       - backendFile:/app/files
       - backendLogs:/app/application.log
+      - backendDocs:/app/docs
     networks:
       - backend_net
     depends_on:
@@ -49,6 +50,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
+      - backendDocs:/srv/docs
     depends_on:
       - backend
     networks:
@@ -60,6 +62,8 @@ volumes:
   backendFile:
 
   backendLogs:
+
+  backendDocs:
 
   caddy_data:
   
