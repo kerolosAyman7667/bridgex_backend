@@ -1,0 +1,12 @@
+yourdomain.com {
+
+  handle_path /app/docs {
+    root * /srv/docs
+    file_server
+  }
+
+  # Default: reverse proxy everything else to backend
+  handle {
+    reverse_proxy backend:8000
+  }
+}
