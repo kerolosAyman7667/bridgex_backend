@@ -107,7 +107,7 @@ export class CommunitiesService implements ICommunitiesService {
     }
 
     async GetCards(dto: CommunitySearchDto): Promise<PaginationResponce<CommunityCardDto>> {
-        const communities = await this.repo.FindAllPaginated({ Name: Like(`%${dto?.Name}%`) }, {Leader:true,SubTeams:{Members:true},Teams:true}, dto)
+        const communities = await this.repo.FindAllPaginated({ Name: Like(`%${dto?.Name}%`) }, {Leader:true,Members:true,Teams:true}, dto)
         return new PaginationResponce<CommunityCardDto>(
             await this.mapper.mapArrayAsync(communities.Data, Communities, CommunityCardDto),
             communities.Count
@@ -118,9 +118,9 @@ export class CommunitiesService implements ICommunitiesService {
         const community = await this.repo.FindById(id,{
             MediaLinks: true,
             Images: true,
-            Teams:{Leader:true,SubTeams:{Members:true}},
+            Teams:{Leader:true,Members:true},
             Leader:true,
-            SubTeams:{Members:true},
+            Members:true,
         })
 
         if (!community)

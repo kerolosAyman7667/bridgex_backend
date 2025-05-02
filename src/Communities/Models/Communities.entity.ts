@@ -6,6 +6,7 @@ import { CommunitiesMedia } from "./CommunitiesMedia.entity";
 import { CommunitiesConstants } from "../CommunitiesConstants";
 import { Teams } from "src/Teams/Models/Teams.entity";
 import { SubTeams } from "src/SubTeams/Models/SubTeams.entity";
+import { SubTeamMembers } from "src/SubTeams/Models/SubTeamMembers.entity";
 
 export class Communities extends EntityBase {
 
@@ -42,13 +43,16 @@ export class Communities extends EntityBase {
     @AutoMap(() => [SubTeams])
     SubTeams?: SubTeams[]
 
+    //@AutoMap(()=> SubTeamMembers)
+    Members:SubTeamMembers[]
+
     @AutoMap()
     get MembersCount() : number
     {
         let count = 0;
-        if(this.SubTeams)
+        if(this.Members)
         {
-            count = this.SubTeams?.reduce((prev:number,current:SubTeams)=> current.Members.filter(x=> x.JoinDate && !x.LeaveDate).length + prev,0);
+            count = this.Members?.filter(x=> x.JoinDate && !x.LeaveDate).length;
         }
         //community Admin
         count += 1

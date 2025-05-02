@@ -1,4 +1,5 @@
 import { Injectable, PipeTransform, ArgumentMetadata, BadRequestException } from '@nestjs/common'
+import { IsArray } from 'class-validator'
     
     @Injectable()
     export class TrimPipe implements PipeTransform {
@@ -7,6 +8,7 @@ import { Injectable, PipeTransform, ArgumentMetadata, BadRequestException } from
       }
     
       private trim(values) {
+        if(IsArray(values) && values.length > 10)return values
         Object.keys(values).forEach(key => {
           if (key !== 'password') {
             if (this.isObj(values[key])) {

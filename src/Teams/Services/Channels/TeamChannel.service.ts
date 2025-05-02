@@ -41,9 +41,6 @@ export class TeamsChannelService implements ITeamsChannelService {
     @Inject(UsersService)
     private readonly userService: UsersService
 
-    @Inject(ISubTeamsMembersService)
-    private readonly membersService: ISubTeamsMembersService
-
     @Inject(RedisProvidersEnum.PUB) 
     private readonly redisPubClient: Redis;
 
@@ -119,7 +116,7 @@ export class TeamsChannelService implements ITeamsChannelService {
         {
             throw new NotFoundException("Channel not found")
         }
-        const isMember = await this.membersService.IsMemberExistByTeam(channel.TeamId,userId);
+        const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
         if(!isMember.IsLeader && !isMember.IsMember)
         {
             throw new NotFoundException("Channel not found")
@@ -170,7 +167,7 @@ export class TeamsChannelService implements ITeamsChannelService {
         {
             throw new NotFoundException("Channel not found")
         }
-        const isMember = await this.membersService.IsMemberExistByTeam(channel.TeamId,userId);
+        const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
         if(!isMember.IsLeader && !isMember.IsMember)
         {
             throw new NotFoundException("Channel not found")
@@ -213,7 +210,7 @@ export class TeamsChannelService implements ITeamsChannelService {
         {
             throw new NotFoundException("Channel not found")
         }
-        const isMember = await this.membersService.IsMemberExistByTeam(channel.TeamId,userId);
+        const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
         if(!isMember.IsLeader && !isMember.IsMember)
         {
             throw new NotFoundException("Channel not found")
@@ -233,7 +230,7 @@ export class TeamsChannelService implements ITeamsChannelService {
         {
             throw new NotFoundException("Channel not found")
         }
-        const isMember = await this.membersService.IsMemberExistByTeam(channel.TeamId,userId);
+        const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
         if(!isMember.IsLeader && !isMember.IsMember)
         {
             throw new NotFoundException("Channel not found")
@@ -305,7 +302,7 @@ export class TeamsChannelService implements ITeamsChannelService {
         {
             throw new NotFoundException("Channel not found")
         }
-        const isMember = await this.membersService.IsMemberExistByTeam(channel.TeamId,userId);
+        const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
         if(!isMember.IsLeader && !isMember.IsMember)
         {
             throw new NotFoundException("Channel not found")
@@ -345,7 +342,7 @@ export class TeamsChannelService implements ITeamsChannelService {
     }
 
     async CanAccess(channelId: string, searchId: TeamSearchId, userId: string): Promise<boolean> {
-        const isMember = await this.membersService.IsMemberExistByTeam(searchId.teamId, userId);
+        const isMember = await this.teamService.IsMemberExist(searchId.teamId, userId);
         if (!isMember.IsLeader && !isMember.IsMember) {
             return false
         }

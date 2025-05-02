@@ -9,6 +9,7 @@ import { TeamImages } from "../TeamImages.entity";
 import { TeamChannels } from "../TeamChannels.entity";
 import { TeamLeaders } from "../TeamLeaders.entity";
 import { SubTeams } from "src/SubTeams/Models/SubTeams.entity";
+import { SubTeamMembers } from "src/SubTeams/Models/SubTeamMembers.entity";
 
 export class TeamsSchema extends Schema<Teams> {
     constructor() {
@@ -107,6 +108,12 @@ export class TeamsSchema extends Schema<Teams> {
                     inverseSide:GetKey<SubTeams>("Team"),
                     onDelete: "CASCADE",
                 },
+                Members:{
+                    type: "one-to-many",
+                    target: SubTeamMembers.name,
+                    inverseSide:GetKey<SubTeamMembers>("Team"),
+                    onDelete: "CASCADE", 
+                }
             },
         })
     }

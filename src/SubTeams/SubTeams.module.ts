@@ -32,7 +32,7 @@ import { NotificationModule } from "src/Infrastructure/Notification/Notification
        DatabaseModule.forFeature([SubTeams,SubTeamsMedia,SubTeamImages,SubTeamMembers,SubTeamChannelChats,SubTeamChannels,
         LearningPhaseSections,LearningPhaseResources,LearningPhaseVideos,UserProgress
        ]),
-       UsersModule,forwardRef(()=> TeamsModule),AIModule,EventsModule,NotificationModule
+       UsersModule,TeamsModule,AIModule,EventsModule,NotificationModule
     ],
     controllers:[SubTeamsController, SubTeamImagesGet, SubTeamMembersController, LearningPhaseController,SubTeamChannelController,SubTeamChannelChatsController],
     providers:[ISubTeamsServiceProvider,ISubTeamsMembersServiceProvider,ILearningPhaseServiceProvider,SubTeamsProfile,ISubTeamsChannelServiceProvider],

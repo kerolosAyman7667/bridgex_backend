@@ -8,8 +8,9 @@ import { TeamService } from "./Team.service";
 import { LogoDto } from "src/Common/DTOs/Logo.dto";
 import { IVerifyLeader } from "src/Common/Generic/Contracts/IVerifyLeader";
 import { Teams } from "../Models/Teams.entity";
+import { IIsMemberExists } from "src/Common/Generic/Contracts/IIsMemberExists";
 
-export interface ITeamsService extends IVerifyLeader<Teams> {
+export interface ITeamsService extends IVerifyLeader<Teams>, IIsMemberExists {
     /**
      * Creates a new team
      * @param {TeamCreateDto} dataToInsert - The data for creating a new team

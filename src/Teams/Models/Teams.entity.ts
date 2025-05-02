@@ -9,6 +9,7 @@ import { Users } from "src/Users/Models/Users.entity";
 import { TeamLeaders } from "./TeamLeaders.entity";
 import { TeamChannels } from "./TeamChannels.entity";
 import { SubTeams } from "src/SubTeams/Models/SubTeams.entity";
+import { SubTeamMembers } from "src/SubTeams/Models/SubTeamMembers.entity";
 
 export class Teams extends EntityBase {
 
@@ -57,6 +58,9 @@ export class Teams extends EntityBase {
     @AutoMap(() => [SubTeams])
     SubTeams?: SubTeams[]
 
+    //@AutoMap(()=> SubTeamMembers)
+    Members:SubTeamMembers[]
+    
     @AutoMap()
     get MembersCount() : number
     {
@@ -64,6 +68,9 @@ export class Teams extends EntityBase {
         if(this.SubTeams)
         {
             count = this.SubTeams?.reduce((prev:number,current:SubTeams)=> current.Members.filter(x=> x.JoinDate && !x.LeaveDate).length + prev,0);
+        }else if(this.Members)
+        {
+            count = this.Members.filter(x=> x.JoinDate && !x.LeaveDate).length
         }
         //team Admin
         count += 1
