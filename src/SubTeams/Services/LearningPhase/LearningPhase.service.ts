@@ -137,7 +137,7 @@ export class LearningPhaseService implements ILearningPhaseService {
             throw new NotFoundException("Section not found")
         }
         for (const resource of section?.Resources) {
-            await this.aiService.DeleteAsset(subTeam.KnowledgeBaseId,resource.AIAssetId,true);
+            this.aiService.DeleteAsset(subTeam.KnowledgeBaseId,resource.AIAssetId,true);
             await this.fileService.Remove(resource.File, LearningPhaseResourcesFileOptions, false);
             await this.resourcesRepo.Delete(resource.Id);
         }
@@ -279,7 +279,7 @@ export class LearningPhaseService implements ILearningPhaseService {
             throw new NotFoundException("Resource is not found");
         }
 
-        await this.aiService.DeleteAsset(subTeam.KnowledgeBaseId,resource.AIAssetId,true);
+        this.aiService.DeleteAsset(subTeam.KnowledgeBaseId,resource.AIAssetId,true);
         await this.fileService.Remove(resource.File, LearningPhaseResourcesFileOptions, false)
         await this.resourcesRepo.Delete(resource.Id)
     }
