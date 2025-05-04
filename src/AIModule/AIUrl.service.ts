@@ -46,8 +46,8 @@ export class AIUrlService {
             );
         } catch (ex) {
             console.log(ex)
-            if (raiseErrorIfFailed)
-                throw new InternalServerErrorException("Error has happened try again later")
+            // if (raiseErrorIfFailed)
+            //     throw new InternalServerErrorException("Error has happened try again later")
         }
     }
 
@@ -68,7 +68,7 @@ export class AIUrlService {
 
             lastValueFrom(
                 this.httpService.post(
-                    `${this.configService.getOrThrow<string>("AIBASEURL")}/assets/process/${knowledgeBaseId}/${response.data.asset_id}`,
+                    `${this.configService.getOrThrow<string>("AIBASEURL")}/assets/process/${knowledgeBaseId}/asset/${response.data.asset_id}`,
                     {
                         "chunk_size": 500,
                         "do_reset": false,
@@ -81,7 +81,7 @@ export class AIUrlService {
                 try
                 {
                     this.httpService.post(
-                        `${this.configService.getOrThrow<string>("AIBASEURL")}/nlp/knowledge-bases/${knowledgeBaseId}/assets/${response.data.asset_id}/index`,
+                        `${this.configService.getOrThrow<string>("AIBASEURL")}/nlp/knowledge-bases/${knowledgeBaseId}/asset/${response.data.asset_id}/index`,
                         {
                             "do_reset": false,
                             "skip_duplicates": true
@@ -100,12 +100,12 @@ export class AIUrlService {
     async DeleteAsset(knowledgeBaseId: string, assetId: string, raiseErrorIfFailed: boolean = true) {
         try {
             await lastValueFrom(
-                this.httpService.delete(`${this.configService.getOrThrow<string>("AIBASEURL")}/assets/${knowledgeBaseId}/${assetId}`)
+                this.httpService.delete(`${this.configService.getOrThrow<string>("AIBASEURL")}/assets/${knowledgeBaseId}/asset/${assetId}`)
             );
         } catch (ex) {
             console.log(ex)
-            if (raiseErrorIfFailed)
-                throw new InternalServerErrorException("Error has happened try again later")
+            // if (raiseErrorIfFailed)
+            //     throw new InternalServerErrorException("Error has happened try again later")
         }
     }
 
