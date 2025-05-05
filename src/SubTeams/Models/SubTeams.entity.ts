@@ -4,7 +4,6 @@ import { SubTeamImages } from "./SubTeamImages.entity";
 import { SubTeamsMedia } from "./SubTeamsMedia.entity";
 import { SubTeamsConstants } from "../SubTeamsConstants";
 import { Communities } from "src/Communities/Models/Communities.entity";
-import { Users } from "src/Users/Models/Users.entity";
 import { SubTeamChannels } from "./SubTeamChannels.entity";
 import { Teams } from "src/Teams/Models/Teams.entity";
 import { SubTeamMembers } from "./SubTeamMembers.entity";
