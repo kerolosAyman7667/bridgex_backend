@@ -19,10 +19,12 @@ import { getVideoDurationInSeconds } from 'get-video-duration';
 import { UserProgress } from "src/SubTeams/Models/LearningPhase/UserProgress.entity";
 import { ISubTeamsMembersService } from "../Members/ISubTeamMembers.service";
 import { UsersService } from "src/Users/Services/Users.service";
-import { GetKey } from "src/Common/GetKeyFrom";
 import { join } from "path";
-import { AIUrlService } from "src/AIModule/AIUrl.service";
+import { IAIUrlService } from "src/AIModule/IAIUrl.service";
+import { FileReturn } from "src/Common/FileUpload/FileReturn";
+import { SubTeams } from "src/SubTeams/Models/SubTeams.entity";
 import { CreateAssetResponseDto } from "src/AIModule/Dtos/CreateAssetResponse.dto";
+import { writeFileSync } from "fs";
 
 @Injectable({scope:Scope.REQUEST})
 export class LearningPhaseService implements ILearningPhaseService {
@@ -50,8 +52,8 @@ export class LearningPhaseService implements ILearningPhaseService {
     @Inject(UsersService)
     private readonly userService: UsersService;
 
-    @Inject(AIUrlService)
-    private readonly aiService:AIUrlService
+    @Inject(IAIUrlService)
+    private readonly aiService:IAIUrlService
 
 
     async GetVideo(videoId: string, searchIds: SubTeamSearchIdWithSection): Promise<LearningPhaseVideoDto> {
@@ -239,19 +241,10 @@ export class LearningPhaseService implements ILearningPhaseService {
         // }
 
         await this.resourcesRepo.Insert(resource)
-        this.aiService.AddAsset(subTeam.KnowledgeBaseId,fileUpload[0].FilePath).then(async (value)=>{
-            try
-            {
-                const addedResource = await this.resourcesRepo.FindById(resource.Id);
-                addedResource.AIAssetId = value.asset_id;
-                this.resourcesRepo.Update(resource.Id,addedResource)
-            }catch(ex)
-            {
-                console.log(ex);
-            }
-        }).catch((ex)=>{
-            console.log(ex);
-        })
+        if(["pdf","doc","docx","txt"].includes(fileUpload[0].Extension))
+        {
+            this.UploadFileToAi(fileUpload[0],subTeam,resource).catch(console.log);
+        }
         
         const returnDto = new LearningPhaseResourceDto()
         returnDto.File = resource.File;
@@ -353,5 +346,23 @@ export class LearningPhaseService implements ILearningPhaseService {
 
             await this.userProgressRepo.Insert(userProgress)
         }
+    }
+
+    private async UploadFileToAi(fileUpload:FileReturn,subTeam:SubTeams,resource:LearningPhaseResources)
+    {
+        let aiResponse:CreateAssetResponseDto;
+        if(["pdf","txt"].includes(fileUpload.Extension))
+        {
+            aiResponse = await this.aiService.AddAsset(subTeam.KnowledgeBaseId,fileUpload.FilePath)
+        }
+        else if(["doc","docx"].includes(fileUpload.Extension))
+        {
+            let fileToSend:Buffer = await this.fileService.ConvertToPdf(fileUpload.FilePath);
+            aiResponse = await this.aiService.AddAsset(subTeam.KnowledgeBaseId,fileToSend,fileUpload.FileName)
+        }
+
+        const addedResource = await this.resourcesRepo.FindById(resource.Id);
+        addedResource.AIAssetId = aiResponse.asset_id;
+        await this.resourcesRepo.Update(resource.Id,addedResource)
     }
 }
