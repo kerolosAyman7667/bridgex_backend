@@ -25,7 +25,7 @@ import { ChatModule } from './Chat/Chat.module';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'files'),
-      exclude: ['/api/assets/learning/*','/api/profile/images/*'], 
+      exclude: ['/api/assets/learning/*','/api/assets/profile/images/*'], 
       serveRoot:"/api/assets"
     }),
     FileModule,
