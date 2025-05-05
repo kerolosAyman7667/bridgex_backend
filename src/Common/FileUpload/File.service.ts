@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Scope, StreamableFile } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, Scope, StreamableFile } from "@nestjs/common";
 import { IFile } from "./FileTypes/IFile";
 import { IFileService } from "./IFile.service";
 import { randomBytes } from "crypto";
@@ -12,6 +12,10 @@ import { FileNotFound } from "./Errors/FileNotFound";
 import { DeleteFileError } from "./Errors/DeleteFileError";
 import { FileReturn } from "./FileReturn";
 import { UpadeFileError } from "./Errors/UpadeFileError";
+import * as FormData from 'form-data';
+import { HttpService } from "@nestjs/axios";
+import { ConfigService } from "@nestjs/config";
+import { lastValueFrom } from "rxjs";
 
 
 let fileTypeFromBuffer: any;
@@ -22,6 +26,14 @@ eval(`import('file-type')`).then((module) => {
 @Injectable({ scope: Scope.REQUEST })
 export class FileService implements IFileService {
 
+
+    constructor
+    (
+        private readonly httpService:HttpService,
+        private readonly configService: ConfigService
+    ){}
+    
+    
     public async Get(filePath: string, fileOptions: IFile): Promise<StreamableFile> {
         if (!filePath)
             throw new FileNotFound("")
@@ -121,7 +133,7 @@ export class FileService implements IFileService {
             await this.SaveFile(filePath, file.buffer)
 
             filesPath.push(
-                new FileReturn(newFilename, path.join(fileOptions.Dest,newFilename))
+                new FileReturn(newFilename, path.join(fileOptions.Dest,newFilename),fileType.ext)
             )
         }
 
@@ -176,5 +188,28 @@ export class FileService implements IFileService {
         }
 
         return true
+    }
+
+    async ConvertToPdf(filePath: string) : Promise<Buffer>
+    {
+        const form = new FormData();
+        form.append('files', createReadStream(path.join("files" , filePath)));
+        form.append('convert', 'libreoffice'); 
+
+        try {
+            const response = await lastValueFrom(this.httpService.post(
+              `${this.configService.getOrThrow("GotenbergUrl")}/forms/libreoffice/convert`,
+              form,
+              {
+                headers: form.getHeaders(),
+                responseType: 'arraybuffer', // get PDF as buffer
+              },
+            ));
+      
+            return Buffer.from(response.data);
+          } catch (error:any) {
+            console.error('Gotenberg conversion error:', error.message);
+            throw new InternalServerErrorException('Failed to convert document');
+          }
     }
 }

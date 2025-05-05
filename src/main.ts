@@ -27,6 +27,11 @@ async function bootstrap() {
     res.status(404).json(new ResponseType(HttpStatus.NOT_FOUND,"path not found"))
   });
 
+  
+  app.use('/api/assets/profile/images/*', (req, res, next) => {
+    res.status(404).json(new ResponseType(HttpStatus.NOT_FOUND,"path not found"))
+  });
+
   app.useGlobalPipes(new ValidationPipe({
     transform:true,
     forbidNonWhitelisted:true,

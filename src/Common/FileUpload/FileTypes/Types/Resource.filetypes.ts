@@ -4,6 +4,7 @@ export class ResourceFileType implements IFileTypes
 {
     MimeTypes: string[] = 
     [
+        'text/plain',
         'application/pdf',
         'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -15,6 +16,7 @@ export class ResourceFileType implements IFileTypes
     
     Extensions: string[] = 
     [
+        'txt',
         'pdf',
         'doc',
         'docx',

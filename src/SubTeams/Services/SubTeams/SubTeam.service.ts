@@ -27,6 +27,12 @@ import { HttpService } from "@nestjs/axios";
 import { lastValueFrom } from "rxjs";
 import { CreateKnowledgeBaseDto, CreateKnowledgeBaseResponseDto } from "src/AIModule/Dtos/CreateKnowledgeBase.dto";
 import { AIUrlService } from "src/AIModule/AIUrl.service";
+import { IAIUrlService } from "src/AIModule/IAIUrl.service";
+import { SendChat } from "src/AIModule/Dtos/SendChat.dto";
+import { ChatResponseDto, ChatResponseWithMessageDto } from "src/AIModule/Dtos/ChatResponse.dto";
+import { LearningPhaseChat } from "src/SubTeams/Models/LearningPhase/LearningPhaseChat.entity";
+import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto";
+import { SortType } from "src/Common/Pagination/Pagination";
 
 
 /**
@@ -48,6 +54,9 @@ export class SubTeamService implements ISubTeamsService {
         @Inject(`REPO_${SubTeamMembers.name.toUpperCase()}`)
         private readonly membersRepo: IGenericRepo<SubTeamMembers>,
 
+        @Inject(`REPO_${LearningPhaseChat.name.toUpperCase()}`)
+        private readonly learningPhaseChatRepo: IGenericRepo<LearningPhaseChat>,
+
         @Inject(IFileService)
         private readonly fileService: IFileService,
         @InjectMapper()
@@ -56,7 +65,8 @@ export class SubTeamService implements ISubTeamsService {
         @Inject(ITeamsService)
         private readonly teamService: ITeamsService,
 
-        private readonly aiService:AIUrlService
+        @Inject(IAIUrlService)
+        private readonly aiService:IAIUrlService
     ) {
     }
 
@@ -278,4 +288,38 @@ export class SubTeamService implements ISubTeamsService {
         return subTeam;
     }
 
+    async LearningPhaseChatAI(subTeamId:SubTeamSearchId,userId:string,data:SendChat) : Promise<ChatResponseDto>
+    {
+        const subTeam =await this.GetSubTeamById(subTeamId.subTeamId);
+        if(!subTeam.KnowledgeBaseId)
+        {
+            throw new InternalServerErrorException("This sub team has no contact with ai")
+        }
+        const aiResponse = await this.aiService.Chat(subTeam.KnowledgeBaseId,data.Message);
+        const chat  = new LearningPhaseChat()
+        chat.SubTeamId = subTeam.Id;
+        chat.UserId = userId;
+        chat.message = data.Message
+        chat.response = aiResponse
+
+        await this.learningPhaseChatRepo.Insert(chat);
+        return aiResponse;
+    }
+
+    async LearningPhaseChatAIHistory(subTeamId:SubTeamSearchId,userId:string,page:number) : Promise<PaginationResponce<ChatResponseWithMessageDto>>
+    {
+        const dbResponse = await this.learningPhaseChatRepo.FindAllPaginated({UserId:userId,SubTeamId:subTeamId.subTeamId},{},{
+            Page:page,
+            Take:15,
+            SortField:"CreatedAt",
+            SortType:SortType.DESC
+        });
+
+
+        return new PaginationResponce(
+            dbResponse.Data.map(x=> new ChatResponseWithMessageDto(x.response,x.message))
+            ,
+            dbResponse.Count
+        );
+    }
 }

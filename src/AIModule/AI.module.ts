@@ -1,11 +1,11 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { AIUrlService } from "./AIUrl.service";
 import { HttpModule } from "@nestjs/axios";
+import { IAIUrlServiceProvider } from "./IAIUrl.service";
 
 @Module({
     imports:[ConfigModule,HttpModule],
-    providers:[AIUrlService],
-    exports:[AIUrlService]
+    providers:[IAIUrlServiceProvider],
+    exports:[IAIUrlServiceProvider]
 })
 export class AIModule{}
