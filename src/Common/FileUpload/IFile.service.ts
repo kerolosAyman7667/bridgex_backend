@@ -52,6 +52,12 @@ export interface IFileService {
      * @throws FileNotFound - if filepath hadn't been founded
      */
     Get(filePath: string, fileOptions:IFile): Promise<StreamableFile>
+
+    /**
+     * 
+     * @param filePath - file path (DO NOT PROVIDE WITH "files" prefix)
+     */
+    ConvertToPdf(filePath: string) : Promise<Buffer>
 }
 
 export const IFileService = Symbol("IFileService")
