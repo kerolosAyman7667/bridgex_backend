@@ -1,5 +1,5 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpStatus, Inject, Param, Patch, Post, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { BadRequestException, Body, Controller, Delete, Get, HttpStatus, Inject, NotFoundException, Param, ParseIntPipe, Patch, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ISubTeamsService } from "../Services/SubTeams/ISubTeams.service";
 import { JWTGaurd } from "src/AuthModule/Gaurds/JWT.gaurd";
 import { SubTeamCreateDto } from "../Dtos/SubTeamCreate.dto";
@@ -19,6 +19,9 @@ import { ImageCreateDto } from "src/Common/DTOs/ImageCreate.dto";
 import { SubTeamUpdateDto } from "../Dtos/SubTeamUpdate.dto";
 import { OptionalGuard } from "src/AuthModule/Gaurds/OptionalGuard";
 import { ISubTeamsMembersService } from "../Services/Members/ISubTeamMembers.service";
+import { ChatResponseDto, ChatResponseWithMessageDto } from "src/AIModule/Dtos/ChatResponse.dto";
+import { SendChat } from "src/AIModule/Dtos/SendChat.dto";
+import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto";
 
 @ApiTags('sub teams')
 @Controller('communities/:communityId/teams/:teamId/subteams')
@@ -234,5 +237,49 @@ export class SubTeamsController {
         await this.service.DeleteImage(searchId.subTeamId, imageId, payload.UserId);
         return new ResponseType<void>(200, `Deleted sub team image Id:${imageId} successfully`)
     }
+
+    @Post(":subTeamId/learningphase/chat")
+    @UseGuards(JWTGaurd)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'learning phase chat' })
+    @SubTeamParamDecorator(true)
+    @ApiResponse({ status: 200,type:ChatResponseDto })
+    async LearningPhaseChat(
+        @Param(new SubTeamParamPipe()) searchId: SubTeamSearchId,
+        @Body() dto: SendChat,
+        @CurrentUserDecorator() payload: TokenPayLoad
+    ): Promise<ResponseType<ChatResponseDto>> 
+    {
+        const isMember = await this.memberService.IsMemberExist(searchId.subTeamId,payload.UserId)
+        if(!isMember.IsLeader && !isMember.IsMember)
+        {
+            throw new NotFoundException("Sub team no found")
+        }
+        const aiResponse = await this.service.LearningPhaseChatAI(searchId,payload.UserId, dto);
+
+        return new ResponseType<ChatResponseDto>(200, "successfully",aiResponse)
+    }
     
+    @Get(":subTeamId/learningphase/chat")
+    @UseGuards(JWTGaurd)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get learning phase chat history | THIS IS PAGINATED RESPONSE' })
+    @SubTeamParamDecorator(true)
+    @ApiResponse({ status: 200,type:ChatResponseWithMessageDto})
+    @ApiQuery({name:"page",type:Number,required:false})
+    async GetLearningPhaseChat(
+        @Param(new SubTeamParamPipe()) searchId: SubTeamSearchId,
+        @CurrentUserDecorator() payload: TokenPayLoad,
+        @Query("page",new ParseIntPipe({ optional: true })) pageNumber:number = 1
+    ): Promise<ResponseType<PaginationResponce<ChatResponseWithMessageDto>>> 
+    {
+        const isMember = await this.memberService.IsMemberExist(searchId.subTeamId,payload.UserId)
+        if(!isMember.IsLeader && !isMember.IsMember)
+        {
+            throw new NotFoundException("Sub team no found")
+        }
+        const aiResponse = await this.service.LearningPhaseChatAIHistory(searchId,payload.UserId, pageNumber);
+
+        return new ResponseType<PaginationResponce<ChatResponseWithMessageDto>>(200, "successfully",aiResponse)
+    }
 }

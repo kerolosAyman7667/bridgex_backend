@@ -11,6 +11,9 @@ import { SubTeams } from "../../Models/SubTeams.entity";
 import { SubTeamSearchId } from "../../Dtos/SubTeamSearchId";
 import { CreateLearningPhaseDto } from "src/SubTeams/Dtos/LearningPhase/CreateLearningPhase.dto";
 import { LearningPhaseReturnDto } from "src/SubTeams/Dtos/LearningPhase/LearningPhaseReturn.dto";
+import { ChatResponseDto, ChatResponseWithMessageDto } from "src/AIModule/Dtos/ChatResponse.dto";
+import { SendChat } from "src/AIModule/Dtos/SendChat.dto";
+import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto";
 
 export interface ISubTeamsService extends IVerifyLeader<SubTeams> {
     /**
@@ -117,6 +120,22 @@ export interface ISubTeamsService extends IVerifyLeader<SubTeams> {
      * @throws {NotFoundException} if sub team is not found or if user is not the community/team/sub leader
      */
     UpdateLearningPhase(dto:CreateLearningPhaseDto,subTeamId: string,leaderId: string) : Promise<void>
+
+    /**
+     * 
+     * @param subTeamId 
+     * @param userId 
+     * @param data 
+     */
+    LearningPhaseChatAI(subTeamId:SubTeamSearchId,userId:string,data:SendChat) : Promise<ChatResponseDto>
+
+    /**
+     * 
+     * @param subTeamId 
+     * @param userId 
+     * @param page 
+     */
+    LearningPhaseChatAIHistory(subTeamId:SubTeamSearchId,userId:string,page:number) : Promise<PaginationResponce<ChatResponseWithMessageDto>>
 } 
 
 export const ISubTeamsService = Symbol("ISubTeamsService")
