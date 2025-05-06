@@ -80,7 +80,7 @@ export class TeamsController {
         {
             const isMember = await this.service.IsMemberExist(c.Id,payload.UserId)
             c.CanModify = isMember.IsLeader 
-            // c.IsMember =  isMember.IsMember
+            c.IsMember =  isMember.IsMember
             // if(!isMember.IsMember && !isMember.IsLeader)
             // {
             //     delete c.Channels;
