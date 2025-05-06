@@ -273,24 +273,18 @@ export class TeamService implements ITeamsService {
 
     async IsMemberExist(id: string, userId: string): Promise<IsMemberExistDto> {
         const dto = new IsMemberExistDto()
-        const team: Teams = await this.teamRepo.FindOne([
-            {Members:{TeamId:id,UserId:userId,LeaveDate:IsNull(),JoinDate:Not(IsNull())},Id:id},
-            {Id:id}
-        ],{Members:true,Community:true})
 
-        if(team && team.Members.length > 0)
+        try
         {
-            dto.IsMember = true
-            dto.IsLeader = team.Members[0].IsHead
-        }
-        else if(team)
+            await this.VerifyLeaderId(id,userId)
+            dto.IsLeader = true;
+        }catch(err)
         {
-            try
+            const team: Teams = await this.teamRepo.FindOne({Members:{TeamId:id,UserId:userId,LeaveDate:IsNull(),JoinDate:Not(IsNull())},Id:id},{Members:true})
+            if(team)
             {
-                await this.VerifyLeaderId(id,userId,team)
-                dto.IsLeader = true;
-            }catch(err)
-            {}
+                dto.IsMember = true
+            }
         }
 
         return dto;
