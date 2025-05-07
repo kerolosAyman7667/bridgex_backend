@@ -10,7 +10,7 @@ export class JWTWSGuard implements CanActivate {
 
     canActivate(context?: ExecutionContext,clientSocket?:Socket): boolean {
         const client = clientSocket ? clientSocket : context.switchToWs().getClient();
-        const token = client.handshake?.headers?.token;
+        const token = client.handshake?.query?.token;
 
         if (!token) return false;
 
