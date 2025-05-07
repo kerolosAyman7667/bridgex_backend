@@ -16,5 +16,6 @@ export class CreateSectionDto {
     })
     @IsOptional()
     @IsNumber()
+    @MinLength(0)
     Number?: number
 }
