@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { MaxLength, MinLength, IsOptional, IsNumber } from "class-validator";
+import { MaxLength, MinLength, IsOptional, IsNumber, Min } from "class-validator";
 
 export class CreateSectionDto {
     @ApiProperty({
@@ -16,6 +16,6 @@ export class CreateSectionDto {
     })
     @IsOptional()
     @IsNumber()
-    @MinLength(0)
+    @Min(0)
     Number?: number
 }
