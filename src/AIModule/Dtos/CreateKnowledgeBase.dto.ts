@@ -2,7 +2,7 @@ export class CreateKnowledgeBaseDto {
     knowledge_base_name: string
 
     constructor(knowledge_base_name: string) {
-        this.knowledge_base_name = knowledge_base_name
+        this.knowledge_base_name = knowledge_base_name.replace(/[^a-zA-Z0-9]/g, '');
     }
 }
 
