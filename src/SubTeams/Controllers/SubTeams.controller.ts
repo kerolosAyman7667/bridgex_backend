@@ -22,6 +22,7 @@ import { ISubTeamsMembersService } from "../Services/Members/ISubTeamMembers.ser
 import { ChatResponseDto, ChatResponseWithMessageDto } from "src/AIModule/Dtos/ChatResponse.dto";
 import { SendChat } from "src/AIModule/Dtos/SendChat.dto";
 import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto";
+import { IsMemberExistDto } from "src/Common/DTOs/IsMemberExist.dto";
 
 @ApiTags('sub teams')
 @Controller('communities/:communityId/teams/:teamId/subteams')
@@ -54,6 +55,24 @@ export class SubTeamsController {
         const insertedCard = await this.service.Insert(dto, searchId.teamId, user.UserId);
         return new ResponseType<SubTeamCardDto>(201, "Added sub team successfully", insertedCard)
     }
+
+    /**
+    * Is  leader Or member
+    */
+   @Get(":subTeamId/auth")
+   @UseGuards(JWTGaurd)
+   @ApiBearerAuth()
+   @SubTeamParamDecorator(true)
+   @ApiOperation({ summary: 'Get Can modify as IsLeader and if he is member or not' })
+   @ApiResponse({ status: HttpStatus.OK, type: IsMemberExistDto })
+   async IsLeaderOrMember(
+       @Param(new SubTeamParamPipe()) searchId: SubTeamSearchId,
+       @CurrentUserDecorator() user: TokenPayLoad
+   ): Promise<ResponseType<IsMemberExistDto>> 
+   {
+       const dto = await this.memberService.IsMemberExist(searchId.subTeamId,user.UserId);
+       return new ResponseType<IsMemberExistDto>(HttpStatus.OK, "success", dto)
+   }
 
     /**
      * Retrieves all sub teams in team 

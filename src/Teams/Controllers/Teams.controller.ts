@@ -14,6 +14,7 @@ import { LogoDto } from "src/Common/DTOs/Logo.dto";
 import { ImagesDto } from "src/Common/DTOs/Images.dto";
 import { ImageCreateDto } from "src/Common/DTOs/ImageCreate.dto";
 import { OptionalGuard } from "src/AuthModule/Gaurds/OptionalGuard";
+import { IsMemberExistDto } from "src/Common/DTOs/IsMemberExist.dto";
 
 @ApiTags('teams')
 @Controller('communities/:communityId/teams')
@@ -46,6 +47,25 @@ export class TeamsController {
         return new ResponseType<TeamCardDto>(201, "Added team successfully", insertedCard)
     }
 
+    /**
+    * Is  leader Or member
+    */
+    @Get(":id/auth")
+    @UseGuards(JWTGaurd)
+    @ApiBearerAuth()
+    @ApiParam({name:"communityId" , type:"string", description: "Community id"})
+    @ApiParam({ name: 'id', description: 'Team Id' , type:"string"})
+    @ApiOperation({ summary: 'Get Can modify as IsLeader and if he is member or not' })
+    @ApiResponse({ status: HttpStatus.OK, type: IsMemberExistDto })
+    async IsLeaderOrMember(
+        @Param("communityId") communityId:string,
+        @Param("id") id: string,
+        @CurrentUserDecorator() user: TokenPayLoad
+    ): Promise<ResponseType<IsMemberExistDto>> 
+    {
+        const dto = await this.service.IsMemberExist(id,user.UserId);
+        return new ResponseType<IsMemberExistDto>(HttpStatus.OK, "success", dto)
+    }
     /**
      * Retrieves all teams in community 
      */
