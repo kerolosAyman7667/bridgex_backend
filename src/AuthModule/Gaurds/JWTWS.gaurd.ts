@@ -12,14 +12,14 @@ export class JWTWSGuard implements CanActivate {
         const client = clientSocket ? clientSocket : context.switchToWs().getClient();
         const token = client.handshake?.headers?.token;
 
-        if (!token) throw new WsException('Missing auth token');
+        if (!token) return false;
 
         try {
             const decoded:any = jwt.verify(token,this.config.GetKeys().publicKey,this.config.GetConfig());
             client.user = decoded.payload; // Attach user info to socket
             return true;
         } catch (err) {
-            throw new WsException('Invalid or expired token');
+            return false;
         }
     }
 }

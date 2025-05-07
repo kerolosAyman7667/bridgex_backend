@@ -60,7 +60,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     handleConnection(client: Socket) {
         console.log(`Client connected: ${client.id}`);
-        this.jwtGaurd.canActivate(null,client)
+        const isValid:boolean = this.jwtGaurd.canActivate(null,client)
+        if(!isValid)
+        {
+            client.disconnect(true)
+        }
     }
 
     handleDisconnect(client: Socket) {
