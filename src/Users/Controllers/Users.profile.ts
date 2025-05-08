@@ -8,7 +8,7 @@ import { MapEnumHelper } from 'src/Common/MapEnum.helper';
 import { Usertypes } from '../Models/Usertype';
 import { UserCreateDto } from '../Dtos/UserCreate.dto';
 import { UserUpdateDto } from '../Dtos/UserUpdate.dto';
-import { UserPreviewDto, UserPreviewWithEmailDto } from '../Dtos/UserPreview.dto';
+import { UserPreviewDto, UserPreviewWithEmailDto, UserPreviewWithIdDto } from '../Dtos/UserPreview.dto';
 
 @Injectable()
 export class UsersProfile extends AutomapperProfile {
@@ -28,6 +28,7 @@ export class UsersProfile extends AutomapperProfile {
       createMap(mapper,Users,UserReturnDto,MapEnumHelper.Map(Usertypes,"Usertype")),
       createMap(mapper, Users, UserPreviewDto);
       createMap(mapper, Users, UserPreviewWithEmailDto);
+      createMap(mapper, Users, UserPreviewWithIdDto);
     };
   }
 
