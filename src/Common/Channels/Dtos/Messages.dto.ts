@@ -1,7 +1,7 @@
 import { AutoMap } from "@automapper/classes";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, MaxLength } from "class-validator";
-import { UserPreviewDto } from "src/Users/Dtos/UserPreview.dto";
+import { UserPreviewWithIdDto } from "src/Users/Dtos/UserPreview.dto";
 
 export class MessagesDto
 {
@@ -9,9 +9,9 @@ export class MessagesDto
     @ApiProperty()
     Id:string
     
-    @AutoMap(()=>UserPreviewDto)
+    @AutoMap(()=>UserPreviewWithIdDto)
     @ApiProperty()
-    User:UserPreviewDto;
+    User:UserPreviewWithIdDto;
 
     @AutoMap(()=>MessagesDto)
     @ApiProperty()
