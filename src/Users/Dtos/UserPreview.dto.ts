@@ -27,3 +27,15 @@ export class UserPreviewWithEmailDto extends UserPreviewDto {
         this.Email = Email
     }
 }
+
+export class UserPreviewWithIdDto extends UserPreviewDto {
+    @ApiProperty()
+    @AutoMap()
+    Id: string
+
+    constructor(FirstName: string, ProfilePhoto: string,Id:string) {
+        super(FirstName,ProfilePhoto)
+
+        this.Id = Id
+    }
+}

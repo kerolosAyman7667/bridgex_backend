@@ -13,7 +13,7 @@ export class TeamAchievementCreateDto
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    @MaxLength(325)
+    @MaxLength(600)
     public Desc:string
     
     /**

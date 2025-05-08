@@ -220,7 +220,7 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
 
         const pagination =  new ChatsPaginationDto()
         pagination.Page = page;
-        const data = await this.channelsChatsRepo.FindAllPaginated({ThreadStart:true},{},pagination)
+        const data = await this.channelsChatsRepo.FindAllPaginated({ThreadStart:true,ChannelId:channel.Id},{},pagination)
         const dtos = data.Data.map(x=> new ThreadDto(x.Text,x.ThreadId));
         return new PaginationResponce(dtos,data.Count);
     }

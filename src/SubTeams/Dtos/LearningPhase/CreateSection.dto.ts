@@ -16,6 +16,6 @@ export class CreateSectionDto {
     })
     @IsOptional()
     @IsNumber()
-    @Min(0)
+    @Min(1)
     Number?: number
 }

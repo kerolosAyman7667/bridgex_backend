@@ -21,7 +21,7 @@ export class TeamAchievementsSchema extends Schema<TeamAchievements> {
                 },
                 Desc:{
                     type: "varchar",
-                    length: 325,
+                    length: 600,
                     nullable: true,
                 },
                 TeamId:{
