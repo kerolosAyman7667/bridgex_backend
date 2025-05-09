@@ -1,0 +1,150 @@
+@startuml Design Patterns
+
+' Interfaces
+interface IGenericRepo<T> {
+  +Repo: Repository<T>
+  +FindAll(): Promise<T[]>
+  +FindAllPaginated(): Promise<PaginationResponce<T>>
+  +FindOne(): Promise<T>
+  +FindById(): Promise<T>
+  +Update(): Promise<T>
+  +Insert(): Promise<T>
+  +Delete(): Promise<void>
+}
+
+interface IGenericService<T> {
+  +FindAll(): Promise<T[]>
+  +FindAllPaginated()
+  +FindOne(): Promise<T>
+  +FindById(): Promise<T>
+  +Update(): Promise<T>
+  +Insert(): Promise<T>
+  +Delete(): Promise<void>
+}
+
+' Abstract classes
+abstract class GenericService<T> {
+  #repo: IGenericRepo<T>
+  +FindAll(): Promise<T[]>
+  +FindOne(): Promise<T>
+  +FindById(): Promise<T>
+  +Update(): Promise<T>
+  +Insert(): Promise<T>
+  +Delete(): Promise<void>
+  #ErrorFactory()
+}
+
+' Concrete implementations
+class GenericRepo<T> {
+  #repo: Repository<T>
+  #logger: LoggerMainService
+  +FindAll(): Promise<T[]>
+  +FindAllPaginated(): Promise<PaginationResponce<T>>
+  +FindOne(): Promise<T>
+  +FindById(): Promise<T>
+  +Update(): Promise<T>
+  +Insert(): Promise<T>
+  +Delete(): Promise<void>
+  -ErrorFactory()
+}
+
+' Service interfaces
+interface ISubTeamsService {
+  +GetAll(): Promise<SubTeamCardDto[]>
+  +GetById(): Promise<SubTeamDto>
+  +Create(): Promise<SubTeamCardDto>
+  +Update(): Promise<SubTeamDto>
+  +Delete(): Promise<void>
+}
+
+interface ISubTeamsMembersService {
+  +GetAll(): Promise<MemberReturnDto[]>
+  +GetById(): Promise<MemberReturnDto>
+  +Join(): Promise<void>
+  +Leave(): Promise<void>
+}
+
+interface ILearningPhaseService {
+  +GetSections(): Promise<LearningPhaseSectionDto[]>
+  +CreateSection(): Promise<LearningPhaseSectionDto>
+  +UpdateSection(): Promise<LearningPhaseSectionDto>
+  +DeleteSection(): Promise<void>
+}
+
+' Service implementations
+class SubTeamService {
+  -repo: IGenericRepo<SubTeams>
+  -mapper: Mapper
+  -fileService: IFileService
+  +GetAll(): Promise<SubTeamCardDto[]>
+  +GetById(): Promise<SubTeamDto>
+  +Create(): Promise<SubTeamCardDto>
+  +Update(): Promise<SubTeamDto>
+  +Delete(): Promise<void>
+}
+
+class SubTeamsMembersService {
+  -repo: IGenericRepo<SubTeamMembers>
+  -subTeamsService: ISubTeamsService
+  -usersService: UsersService
+  +GetAll(): Promise<MemberReturnDto[]>
+  +GetById(): Promise<MemberReturnDto>
+  +Join(): Promise<void>
+  +Leave(): Promise<void>
+}
+
+' Controllers
+class SubTeamsController {
+  -service: ISubTeamsService
+  -memberService: ISubTeamsMembersService
+  +GetAll()
+  +GetById()
+  +Create()
+  +Update()
+  +Delete()
+}
+
+class SubTeamMembersController {
+  -service: ISubTeamsMembersService
+  +GetAll()
+  +GetById()
+  +Join()
+  +Leave()
+}
+
+class LearningPhaseController {
+  -service: ILearningPhaseService
+  +GetSections()
+  +CreateSection()
+  +UpdateSection()
+  +DeleteSection()
+}
+
+' Module
+class SubTeamsModule {
+}
+
+' Relationships - Implementations
+GenericRepo ..|> IGenericRepo
+GenericService ..|> IGenericService
+SubTeamService ..|> ISubTeamsService
+SubTeamsMembersService ..|> ISubTeamsMembersService
+
+' Relationships - Dependencies
+SubTeamsController --> ISubTeamsService
+SubTeamsController --> ISubTeamsMembersService
+SubTeamMembersController --> ISubTeamsMembersService
+LearningPhaseController --> ILearningPhaseService
+
+SubTeamService --> IGenericRepo
+SubTeamsMembersService --> IGenericRepo
+SubTeamsMembersService --> ISubTeamsService
+
+' Module relationships
+SubTeamsModule --> SubTeamsController
+SubTeamsModule --> SubTeamMembersController
+SubTeamsModule --> LearningPhaseController
+SubTeamsModule --> SubTeamService
+SubTeamsModule --> SubTeamsMembersService
+
+@enduml

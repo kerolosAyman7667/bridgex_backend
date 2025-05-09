@@ -1,0 +1,45 @@
+@startuml
+
+!define RECTANGLE class
+
+' External APIs
+RECTANGLE "AI API" as AI_API
+RECTANGLE "MySQL Database" as MySQL
+RECTANGLE "Gotenberg" as Gotenberg
+
+' API Gateway
+RECTANGLE "API Gateway" as APIGateway
+
+' Modules under API Gateway
+RECTANGLE "User Module" as UserModule
+RECTANGLE "Team Module" as TeamModule
+RECTANGLE "Subteam Module" as SubteamModule
+RECTANGLE "Community Module" as CommunityModule
+RECTANGLE "File Module" as FileModule
+
+' Relationships between modules and external APIs
+APIGateway -down-> UserModule : routes
+APIGateway -down-> TeamModule : routes
+APIGateway -down-> SubteamModule : routes
+APIGateway -down-> CommunityModule : routes
+
+UserModule -down-> MySQL : interacts with
+TeamModule -down-> MySQL : interacts with
+SubteamModule -down-> MySQL : interacts with
+CommunityModule -down-> MySQL : interacts with
+
+CommunityModule -down-> TeamModule : interacts with
+TeamModule -down-> SubteamModule : interacts with
+
+
+
+SubteamModule -down-> AI_API : interacts with
+
+
+UserModule -down-> FileModule : interacts with
+TeamModule -down-> FileModule : interacts with
+SubteamModule -down-> FileModule : interacts with
+CommunityModule -down-> FileModule : interacts with
+FileModule -down-> Gotenberg : interacts with
+
+@enduml

@@ -1,0 +1,42 @@
+@startuml Learning Phase User Interaction
+
+actor User
+participant "Frontend" as UI
+participant "Backend API" as API
+participant "AI Knowledge Base" as AI
+
+title Learning Phase - User Interaction with Resources
+
+== Resource Upload (Leader) ==
+
+User -> UI: Navigate to Learning Phase Section
+User -> UI: Select "Upload Resource"
+User -> UI: Choose file and enter name
+UI -> API: POST /section/:sectionId/resource
+API -> API: Process and store file
+API -> AI: Add to knowledge base (if applicable)
+API --> UI: Return success
+UI --> User: Show success message
+
+== Resource Access (Member) ==
+
+User -> UI: Navigate to Learning Phase Section
+UI -> API: GET /subteam/:subTeamId/learningphase
+API --> UI: Return sections with resources
+UI --> User: Display resources list
+User -> UI: Click on resource
+UI -> API: GET /resource/:resourceId
+API --> UI: Return resource file
+UI --> User: Display/download resource
+
+== AI Chat Based on Resources ==
+
+User -> UI: Navigate to Learning Phase Chat
+User -> UI: Enter question about learning materials
+UI -> API: POST /subteam/:subTeamId/learningphase/chat
+API -> AI: Query knowledge base with question
+AI --> API: Return AI-generated response
+API --> UI: Return chat response
+UI --> User: Display AI response
+
+@enduml

@@ -1,0 +1,87 @@
+@startuml BridgeX_CommunityManagement_UseCase
+
+' Title
+title BridgeX Platform - Community Management Use Case Diagram
+
+' Styling and layout improvements
+skinparam usecase {
+  BackgroundColor #E8F4F9
+  BorderColor #2980B9
+  ArrowColor #2980B9
+  ActorBorderColor #2980B9
+  ActorBackgroundColor #E8F4F9
+  ActorFontColor #2980B9
+  FontStyle bold
+  FontSize 14
+  Stereotypefontsize 12
+}
+
+skinparam rectangle {
+  BackgroundColor transparent
+  BorderColor #2980B9
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 16
+  Roundcorner 20
+}
+
+skinparam package {
+  BackgroundColor #F5F5F5
+  BorderColor #3498DB
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 14
+}
+
+skinparam handwritten false
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam ArrowThickness 1.5
+skinparam defaultFontName Arial
+
+' Define actors with custom icons
+actor "Student" as Student #E8F4F9
+actor "Team Leader" as TeamLeader #E8F4F9
+actor "Community Leader" as CommunityLeader #E8F4F9
+actor "Super Admin" as SuperAdmin #E8F4F9
+
+' Group use cases by functionality
+rectangle "Community Management" {
+  usecase "Create Community" as CreateCommunity #E1F5FE
+  usecase "View Communities" as ViewCommunities #E1F5FE
+  usecase "Update Community" as UpdateCommunity #E1F5FE
+  usecase "Manage Community Media" as ManageCommunityMedia #E1F5FE
+}
+
+' Define relationships with cleaner layout and descriptions
+' Common use cases for all users
+ViewCommunities <-- Student : browses
+ViewCommunities <-- TeamLeader : browses
+ViewCommunities <-- CommunityLeader : monitors
+ViewCommunities <-- SuperAdmin : monitors
+
+' Community Leader-specific relationships
+CommunityLeader -[#9C27B0]-> UpdateCommunity : modifies details
+CommunityLeader -[#9C27B0]-> ManageCommunityMedia : uploads media
+
+' Super Admin-specific relationships
+SuperAdmin -[#F44336]-> CreateCommunity : establishes
+SuperAdmin -[#F44336]-> UpdateCommunity : modifies any community
+
+note bottom of CreateCommunity
+  Only Super Admins can create communities
+end note
+
+note bottom of UpdateCommunity
+  Community Leaders can update their own communities
+  Super Admins can update any community
+end note
+
+legend right
+  <b>Community Management Module</b>
+  This diagram shows the community creation and
+  management features of the BridgeX platform.
+end legend
+
+@enduml

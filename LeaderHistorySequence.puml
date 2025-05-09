@@ -1,0 +1,117 @@
+@startuml Leader History Sequence
+
+actor "Community Leader" as Admin
+participant "TeamsController" as Controller
+participant "JWTGuard" as JWTGuard
+participant "TeamService" as Service
+participant "UsersService" as UserService
+participant "GenericRepo<Teams>" as TeamsRepo
+participant "GenericRepo<TeamLeaders>" as LeadersRepo
+participant "NotificationService" as NotificationService
+
+== Authentication ==
+Admin -> Controller: PATCH /communities/{communityId}/teams/{id}/core\nwith TeamCreateDto
+activate Controller
+
+Controller -> JWTGuard: canActivate()
+activate JWTGuard
+JWTGuard -> JWTGuard: Validate JWT token
+JWTGuard --> Controller: User authenticated
+deactivate JWTGuard
+
+== Team Leader Update Process ==
+Controller -> Service: Update(id, dto, leaderId)
+activate Service
+
+Service -> TeamsRepo: FindOne({Id: id, Community: {LeaderId: leaderId}})
+activate TeamsRepo
+TeamsRepo --> Service: Team with Community relation
+deactivate TeamsRepo
+
+Service -> Service: Store old LeaderId
+note right: Keep track of the current leader\nbefore making changes
+
+Service -> UserService: FindOne({Email: dto.LeaderEmail})
+activate UserService
+UserService --> Service: User object (new leader)
+deactivate UserService
+
+Service -> Service: Validate new leader eligibility
+note right: Check if user can be team leader\n(not super admin, not community leader)
+
+Service -> TeamsRepo: FindOne({LeaderId: user.Id, CommunityId: team.CommunityId})
+activate TeamsRepo
+TeamsRepo --> Service: Check if user is already a leader in another team
+deactivate TeamsRepo
+
+alt Leader is changing
+    Service -> LeadersRepo: FindOne({TeamId: team.Id, LeaderId: team.LeaderId, EndDate: IsNull()})
+    activate LeadersRepo
+    LeadersRepo --> Service: Current active leader record
+    deactivate LeadersRepo
+    
+    Service -> Service: Set EndDate to current date for old leader
+    
+    Service -> LeadersRepo: Update(lastActiveLeader.Id, lastActiveLeader)
+    activate LeadersRepo
+    LeadersRepo --> Service: Updated leader record
+    deactivate LeadersRepo
+    
+    Service -> Service: Create new TeamLeaders entity
+    note right: new TeamLeaders(null, user.Id, team.Id)
+    
+    Service -> LeadersRepo: Insert(newLeaderRecord)
+    activate LeadersRepo
+    LeadersRepo --> Service: Inserted leader record
+    deactivate LeadersRepo
+    
+    Service -> Service: Update team.LeaderId = user.Id
+end
+
+alt Team name is changing
+    Service -> TeamsRepo: FindOne({Name: dto.Name})
+    activate TeamsRepo
+    TeamsRepo --> Service: Check for name conflicts
+    deactivate TeamsRepo
+    
+    Service -> Service: Update team.Name = dto.Name
+end
+
+Service -> TeamsRepo: Update(team.Id, team)
+activate TeamsRepo
+TeamsRepo --> Service: Updated team
+deactivate TeamsRepo
+
+alt Leader changed
+    Service -> NotificationService: SendLeaderTeamEmail(user.Email, user.FirstName, team.Community.Name, team.Name)
+    activate NotificationService
+    NotificationService --> Service: Email sent
+    deactivate NotificationService
+end
+
+Service --> Controller: void
+deactivate Service
+
+Controller --> Admin: ResponseType<void>\nStatus: 200, Message: "Team updated successfully"
+deactivate Controller
+
+== Viewing Leader History ==
+Admin -> Controller: GET /communities/{communityId}/teams/{id}
+activate Controller
+
+Controller -> Service: GetTeam(id, communityId)
+activate Service
+
+Service -> TeamsRepo: FindOne({CommunityId: communityId, Id: id}, {Leaders: {Leader: true}, ...})
+activate TeamsRepo
+TeamsRepo --> Service: Team with Leaders relation
+deactivate TeamsRepo
+
+Service -> Service: Map to TeamDto (includes leader history)
+Service --> Controller: TeamDto with leader history
+deactivate Service
+
+Controller --> Admin: ResponseType<TeamDto>\nStatus: 200, Message: "Success"
+deactivate Controller
+
+@enduml

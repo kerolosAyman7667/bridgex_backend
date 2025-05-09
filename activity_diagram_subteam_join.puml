@@ -1,0 +1,181 @@
+@startuml Subteam Join Members Activity Diagram
+
+skinparam backgroundColor white
+skinparam handwritten false
+skinparam DefaultFontName Arial
+skinparam ActivityBackgroundColor #A9DCDF
+skinparam ActivityBorderColor #2C3E50
+skinparam ActivityDiamondBackgroundColor #FEFECE
+skinparam ActivityDiamondBorderColor #2C3E50
+skinparam ArrowColor #2C3E50
+
+title Subteam Join Members - Activity Diagram
+
+|User|
+start
+:Request to join subteam;
+
+|#AntiqueWhite|SubTeamMembersController|
+:Receive join request;
+:Extract subTeamId and userId;
+:Call SubTeamsMembersService.Join();
+
+|#LightBlue|SubTeamsMembersService|
+:Retrieve user data;
+:Retrieve subteam data;
+:Check existing memberships;
+
+if (Is user a super admin?) then (yes)
+  :Throw BadRequestException;
+  stop
+endif
+
+if (Is user a community leader?) then (yes)
+  :Throw BadRequestException;
+  stop
+endif
+
+if (Is user a team leader in this community?) then (yes)
+  :Throw BadRequestException;
+  stop
+endif
+
+if (Is user already in another subteam?) then (yes)
+  :Throw ConflictException;
+  stop
+endif
+
+if (Is user already in this subteam?) then (yes)
+  if (Has user left the subteam?) then (yes)
+    :Update member record 
+    (reset LeaveDate);
+  else (no)
+    if (Is user already accepted?) then (yes)
+      :Throw ConflictException;
+      stop
+    else (no)
+      :Return join link;
+      stop
+    endif
+  endif
+else (no)
+  :Create new member record;
+endif
+
+:Save member data to database;
+:Send notification email;
+:Return join link;
+
+|SubTeamMembersController|
+:Return success response;
+
+|User|
+:Receive success message with join link;
+stop
+
+' Leader adding a member activity flow
+|Leader|
+start
+:Request to add member to subteam;
+
+|#AntiqueWhite|SubTeamMembersController|
+:Receive add member request;
+:Extract subTeamId, userEmail, isHead, joinDate;
+:Call SubTeamsMembersService.AddMember();
+
+|#LightBlue|SubTeamsMembersService|
+:Verify leader permissions;
+:Retrieve user data by email;
+:Check existing memberships;
+
+if (Is user a super admin?) then (yes)
+  :Throw BadRequestException;
+  stop
+endif
+
+if (Is user a community leader?) then (yes)
+  :Throw BadRequestException;
+  stop
+endif
+
+if (Is user a team leader in this community?) then (yes)
+  :Throw BadRequestException;
+  stop
+endif
+
+if (Is user already in another subteam?) then (yes)
+  :Throw ConflictException;
+  stop
+endif
+
+if (Is isHead true?) then (yes)
+  if (Does subteam already have a head?) then (yes)
+    :Throw BadRequestException;
+    stop
+  endif
+endif
+
+if (Is user already in this subteam?) then (yes)
+  if (Has user left the subteam?) then (yes)
+    :Update member record;
+  else (no)
+    if (Is user already accepted?) then (yes)
+      :Throw ConflictException;
+      stop
+    else (no)
+      :Throw ConflictException;
+      stop
+    endif
+  endif
+else (no)
+  :Create new member record;
+endif
+
+:Save member data to database;
+:Send notification email;
+:Return success;
+
+|SubTeamMembersController|
+:Return success response;
+
+|Leader|
+:Receive success message;
+stop
+
+' Accept member activity flow
+|Leader|
+start
+:Request to accept member;
+
+|#AntiqueWhite|SubTeamMembersController|
+:Receive accept member request;
+:Extract subTeamId and memberId;
+:Call SubTeamsMembersService.Accept();
+
+|#LightBlue|SubTeamsMembersService|
+:Verify leader permissions;
+:Retrieve member data;
+
+if (Is member found?) then (no)
+  :Throw NotFoundException;
+  stop
+endif
+
+if (Has member already been accepted?) then (yes)
+  :Throw ConflictException;
+  stop
+endif
+
+:Set JoinDate to current date;
+:Save updated member data;
+:Send notification email;
+:Return success;
+
+|SubTeamMembersController|
+:Return success response;
+
+|Leader|
+:Receive success message;
+stop
+
+@enduml

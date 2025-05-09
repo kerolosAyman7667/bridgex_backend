@@ -1,0 +1,101 @@
+@startuml BridgeX_LearningPhase_UseCase
+
+' Title
+title BridgeX Platform - Learning Phase Use Case Diagram
+
+' Styling and layout improvements
+skinparam usecase {
+  BackgroundColor #E8F4F9
+  BorderColor #2980B9
+  ArrowColor #2980B9
+  ActorBorderColor #2980B9
+  ActorBackgroundColor #E8F4F9
+  ActorFontColor #2980B9
+  FontStyle bold
+  FontSize 14
+  Stereotypefontsize 12
+}
+
+skinparam rectangle {
+  BackgroundColor transparent
+  BorderColor #2980B9
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 16
+  Roundcorner 20
+}
+
+skinparam package {
+  BackgroundColor #F5F5F5
+  BorderColor #3498DB
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 14
+}
+
+skinparam note {
+  BackgroundColor #FFF9C4
+  BorderColor #F9A825
+  FontColor #333333
+  FontSize 13
+}
+
+skinparam handwritten false
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam ArrowThickness 1.5
+skinparam defaultFontName Arial
+
+' Define actors with custom icons
+actor "Student" as Student #E8F4F9
+actor "Team Leader" as TeamLeader #E8F4F9
+actor "AI Assistant" as AI #E8F4F9
+
+' Group use cases by functionality
+rectangle "Learning Phase" {
+  usecase "Create Learning Section" as CreateLearningSection #E1F5FE
+  usecase "Upload Learning Resources" as UploadLearningResources #E1F5FE
+  usecase "Upload Learning Videos" as UploadLearningVideos #E1F5FE
+  usecase "Track Learning Progress" as TrackLearningProgress #E1F5FE
+  usecase "Complete Learning Video" as CompleteVideo #E1F5FE
+  usecase "Chat with AI about Learning" as ChatWithAI #E1F5FE
+}
+
+' Student-specific relationships
+Student -[#4CAF50]-> TrackLearningProgress : monitors own progress
+Student -[#4CAF50]-> CompleteVideo : marks as finished
+Student -[#4CAF50]-> ChatWithAI : asks questions
+
+' Team Leader-specific relationships
+TeamLeader -[#FF5722]-> CreateLearningSection : organizes content
+TeamLeader -[#FF5722]-> UploadLearningResources : provides materials
+TeamLeader -[#FF5722]-> UploadLearningVideos : adds video content
+
+' AI Assistant relationships
+AI -[#2196F3]-> ChatWithAI : provides answers
+
+note bottom of CreateLearningSection
+  Team Leaders organize learning content into sections
+end note
+
+note bottom of UploadLearningVideos
+  Team Leaders can upload instructional videos
+end note
+
+note bottom of ChatWithAI
+  Students can ask questions about learning materials
+  AI Assistant provides intelligent responses
+end note
+
+note bottom of TrackLearningProgress
+  Students can monitor their learning progress
+end note
+
+legend right
+  <b>Learning Phase Module</b>
+  This diagram shows the learning content creation,
+  consumption, and AI-assisted features of the BridgeX platform.
+end legend
+
+@enduml

@@ -1,0 +1,134 @@
+@startuml Entity Models
+
+' Base class
+abstract class EntityBase {
+  +Id: string
+  +CreatedAt: Date
+  +UpdatedAt: Date
+}
+
+' Main entity classes
+class Users extends EntityBase {
+  +FirstName: string
+  +LastName: string
+  +Email: string
+  +StudentId: string
+  +PhoneNumber: string
+  +Password: string
+  +Usertype: Usertypes
+  +IsSuperAdmin: boolean
+  +ProfilePhoto: string
+  +VerifyDate: Date
+}
+
+class Communities extends EntityBase {
+  +Name: string
+  +Desc: string
+  +DescShort: string
+  +Vision: string
+  +Logo: string
+  +LeaderId: string
+}
+
+class Teams extends EntityBase {
+  +Name: string
+  +Desc: string
+  +DescShort: string
+  +Vision: string
+  +Logo: string
+  +CommunityId: string
+}
+
+class SubTeams extends EntityBase {
+  +Name: string
+  +Desc: string
+  +DescShort: string
+  +Vision: string
+  +Logo: string
+  +JoinLink: string
+  +LearningPhaseTitle: string
+  +LearningPhaseDesc: string
+  +CommunityId: string
+  +TeamId: string
+  +KnowledgeBaseId: string
+  +MembersCount: number
+}
+
+' Related entity classes
+class SubTeamMembers extends EntityBase {
+  +UserId: string
+  +SubTeamId: string
+  +IsHead: boolean
+  +JoinDate: Date
+  +LeaveDate: Date
+}
+
+class SubTeamImages extends EntityBase {
+  +Name: string
+  +File: string
+  +SubTeamId: string
+}
+
+class SubTeamsMedia extends EntityBase {
+  +Name: string
+  +Link: string
+  +SubTeamId: string
+}
+
+class SubTeamChannels extends EntityBase {
+  +Name: string
+  +SubTeamId: string
+}
+
+class SubTeamChannelChats extends EntityBase {
+  +Text: string
+  +Message: string
+  +ThreadId: string
+  +ThreadStart: boolean
+  +ReplyToId: string
+  +UserId: string
+  +ChannelId: string
+  +Deleted: boolean
+}
+
+class LearningPhaseSections extends EntityBase {
+  +Name: string
+  +Number: number
+  +SubTeamId: string
+}
+
+class LearningPhaseVideos extends EntityBase {
+  +Title: string
+  +Link: string
+  +SectionId: string
+}
+
+class LearningPhaseResources extends EntityBase {
+  +Title: string
+  +File: string
+  +SectionId: string
+}
+
+' Relationships
+Users "1" -- "0..*" Communities : leads >
+Users "1" -- "0..*" SubTeamMembers : is member >
+
+Communities "1" -- "0..*" Teams : contains >
+Communities "1" -- "0..*" SubTeams : contains >
+
+Teams "1" -- "0..*" SubTeams : contains >
+
+SubTeams "1" -- "0..*" SubTeamMembers : has >
+SubTeams "1" -- "0..*" SubTeamImages : has >
+SubTeams "1" -- "0..*" SubTeamsMedia : has >
+SubTeams "1" -- "0..*" SubTeamChannels : has >
+SubTeams "1" -- "0..*" LearningPhaseSections : has >
+
+SubTeamChannels "1" -- "0..*" SubTeamChannelChats : contains >
+
+LearningPhaseSections "1" -- "0..*" LearningPhaseVideos : has >
+LearningPhaseSections "1" -- "0..*" LearningPhaseResources : has >
+
+SubTeamChannelChats "0..1" -- "0..*" SubTeamChannelChats : replies to >
+
+@enduml

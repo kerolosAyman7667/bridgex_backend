@@ -1,0 +1,72 @@
+@startuml Create Community Activity
+
+title Create Community Process - Activity Diagram
+
+start
+
+:Super Admin submits community creation request 
+with Name and LeaderEmail;
+
+:Validate JWT token;
+
+if (Is user authenticated?) then (yes)
+  :Check user permissions;
+  if (Is user a Super Admin?) then (yes)
+    :Retrieve user by email from UsersService;
+    
+    if (User exists?) then (yes)
+      :Check if user is eligible to be community leader;
+      
+      if (Is user a team leader?) then (yes)
+        #pink:Throw BadRequestException
+        "Team leaders can't be community admins";
+        stop
+      else (no)
+        if (Is user an active subteam member?) then (yes)
+          #pink:Throw BadRequestException
+          "Sub team members can't be community admins";
+          stop
+        else (no)
+          :Check for existing communities with same name;
+          
+          if (Community name exists?) then (yes)
+            #pink:Throw ConflictException
+            "Community name already exists";
+            stop
+          else (no)
+            :Check if user already leads a community;
+            
+            if (User already leads a community?) then (yes)
+              #pink:Throw ConflictException
+              "User already leads a community";
+              stop
+            else (no)
+              :Create new Communities entity;
+              :Set community name and leader ID;
+              :Save community to database;
+              :Send notification email to new community leader;
+              :Map entity to CommunityCardDto;
+              #palegreen:Return success response with created community data;
+            endif
+          endif
+        endif
+      endif
+    else (no)
+      #pink:Throw NotFoundException
+      "User not found";
+      stop
+    endif
+  else (no)
+    #pink:Throw ForbiddenException
+    "User is not a Super Admin";
+    stop
+  endif
+else (no)
+  #pink:Throw UnauthorizedException
+  "User is not authenticated";
+  stop
+endif
+
+stop
+
+@enduml

@@ -1,0 +1,116 @@
+@startuml Subteam Join Members Sequence Diagram
+
+skinparam backgroundColor white
+skinparam handwritten false
+skinparam DefaultFontName Arial
+skinparam sequence {
+    ArrowColor #2C3E50
+    ActorBorderColor #2C3E50
+    LifeLineBorderColor #2C3E50
+    LifeLineBackgroundColor #A9DCDF
+    ParticipantBorderColor #2C3E50
+    ParticipantBackgroundColor #A9DCDF
+    ParticipantFontColor #2C3E50
+}
+
+actor "User" as user
+participant "Frontend" as frontend
+participant "SubTeamMembersController" as controller
+participant "SubTeamsMembersService" as service
+participant "UserService" as userService
+participant "SubTeamService" as subTeamService
+participant "MembersRepository" as membersRepo
+participant "NotificationService" as notificationService
+database "Database" as db
+
+== Self Join Flow ==
+
+user -> frontend: Request to join subteam
+frontend -> controller: POST /communities/{communityId}/teams/{teamId}/subteams/{subTeamId}/members/join
+controller -> service: Join(subTeamId, userId)
+service -> userService: FindOne(userId)
+userService -> db: Query user data
+db --> userService: Return user data
+userService --> service: Return user object
+service -> subTeamService: GetSubTeamById(subTeamId)
+subTeamService -> db: Query subteam data
+db --> subTeamService: Return subteam data
+subTeamService --> service: Return subteam object
+service -> membersRepo: FindAll(userId, communityId)
+membersRepo -> db: Query existing memberships
+db --> membersRepo: Return existing memberships
+membersRepo --> service: Return existing memberships
+service -> service: AddAndHeadRule(validate user can join)
+alt User can join
+    service -> membersRepo: Insert/Update membership record
+    membersRepo -> db: Save membership data
+    db --> membersRepo: Confirm save
+    membersRepo --> service: Return success
+    service -> notificationService: Send notification email
+    service --> controller: Return JoinLink
+    controller --> frontend: Return success response
+    frontend --> user: Show success message with join link
+else User cannot join (already in team, is leader, etc.)
+    service --> controller: Throw exception (Conflict/BadRequest)
+    controller --> frontend: Return error response
+    frontend --> user: Show error message
+end
+
+== Leader Adding Member Flow ==
+
+user -> frontend: Add member to subteam
+frontend -> controller: POST /communities/{communityId}/teams/{teamId}/subteams/{subTeamId}/members/add
+controller -> service: AddMember(subTeamId, userEmail, isHead, joinDate, leaderId)
+service -> subTeamService: VerifyLeaderId(subTeamId, leaderId)
+subTeamService -> db: Verify leader permissions
+db --> subTeamService: Return verification result
+subTeamService --> service: Return subteam object or throw error
+service -> userService: FindOne(userEmail)
+userService -> db: Query user data
+db --> userService: Return user data
+userService --> service: Return user object
+service -> service: AddMemberBasic(user, subTeam, isHead, joinDate)
+alt User can be added
+    service -> membersRepo: Insert/Update membership record
+    membersRepo -> db: Save membership data
+    db --> membersRepo: Confirm save
+    membersRepo --> service: Return success
+    service -> notificationService: Send notification email
+    service --> controller: Return success
+    controller --> frontend: Return success response
+    frontend --> user: Show success message
+else User cannot be added
+    service --> controller: Throw exception (Conflict/BadRequest)
+    controller --> frontend: Return error response
+    frontend --> user: Show error message
+end
+
+== Accept Member Flow ==
+
+user -> frontend: Accept member request
+frontend -> controller: POST /communities/{communityId}/teams/{teamId}/subteams/{subTeamId}/members/{memberId}/accept
+controller -> service: Accept(subTeamId, memberId, leaderId)
+service -> subTeamService: VerifyLeaderId(subTeamId, leaderId)
+subTeamService -> db: Verify leader permissions
+db --> subTeamService: Return verification result
+subTeamService --> service: Return subteam object or throw error
+service -> membersRepo: FindOne(subTeamId, memberId)
+membersRepo -> db: Query member data
+db --> membersRepo: Return member data
+membersRepo --> service: Return member object
+alt Member can be accepted
+    service -> membersRepo: Update member (set JoinDate)
+    membersRepo -> db: Save updated member data
+    db --> membersRepo: Confirm save
+    membersRepo --> service: Return success
+    service -> notificationService: SendSubTeamMemberAddEmail
+    service --> controller: Return success
+    controller --> frontend: Return success response
+    frontend --> user: Show success message
+else Member cannot be accepted
+    service --> controller: Throw exception (NotFound/Conflict)
+    controller --> frontend: Return error response
+    frontend --> user: Show error message
+end
+
+@enduml

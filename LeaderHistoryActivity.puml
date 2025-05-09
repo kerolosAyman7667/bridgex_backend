@@ -1,0 +1,129 @@
+@startuml Leader History Activity
+
+title Team Leader History - Activity Diagram
+
+start
+
+' Initial Team Creation
+partition "Initial Team Creation" {
+  :Community Leader submits team creation request 
+  with Name and LeaderEmail;
+  
+  :Validate JWT token;
+  
+  if (Is user authenticated?) then (yes)
+    :Create new Teams entity;
+    :Set team name, leader ID, and community ID;
+    :Save team to database;
+    
+    :Create initial TeamLeaders record;
+    note right
+      StartDate = current date
+      EndDate = null (active)
+      LeaderId = user.Id
+      TeamId = team.Id
+    end note
+    
+    :Save TeamLeaders record to database;
+    :Send notification email to new team leader;
+  else (no)
+    #pink:Throw UnauthorizedException;
+    stop
+  endif
+}
+
+' Team Leader Update
+partition "Team Leader Update" {
+  :Community Leader submits team update request 
+  with new Name and/or LeaderEmail;
+  
+  :Validate JWT token;
+  
+  if (Is user authenticated?) then (yes)
+    :Retrieve team by ID;
+    
+    if (Team exists?) then (yes)
+      :Store current leader ID;
+      
+      if (Leader is changing?) then (yes)
+        :Retrieve user by email;
+        
+        if (User exists?) then (yes)
+          :Validate new leader eligibility;
+          
+          if (Is user eligible to be team leader?) then (yes)
+            :Check if user is already a leader in another team;
+            
+            if (User is already a team leader?) then (yes)
+              #pink:Throw ConflictException;
+              stop
+            else (no)
+              :Find current active leader record;
+              :Set EndDate to current date for old leader;
+              :Update leader record in database;
+              
+              :Create new TeamLeaders record;
+              note right
+                StartDate = current date
+                EndDate = null (active)
+                LeaderId = new user.Id
+                TeamId = team.Id
+              end note
+              
+              :Save new TeamLeaders record to database;
+              :Update team's LeaderId to new leader;
+              :Send notification email to new team leader;
+            endif
+          else (no)
+            #pink:Throw BadRequestException;
+            stop
+          endif
+        else (no)
+          #pink:Throw NotFoundException;
+          stop
+        endif
+      else (no)
+        :No leader change needed;
+      endif
+      
+      if (Team name is changing?) then (yes)
+        :Check for name conflicts;
+        
+        if (Name conflict exists?) then (yes)
+          #pink:Throw ConflictException;
+          stop
+        else (no)
+          :Update team name;
+        endif
+      endif
+      
+      :Save updated team to database;
+      #palegreen:Return success response;
+    else (no)
+      #pink:Throw NotFoundException;
+      stop
+    endif
+  else (no)
+    #pink:Throw UnauthorizedException;
+    stop
+  endif
+}
+
+' Viewing Leader History
+partition "Viewing Leader History" {
+  :User requests team details;
+  
+  :Retrieve team with leader history;
+  note right
+    Include Leaders relation with
+    StartDate, EndDate, and Leader info
+  end note
+  
+  :Map to TeamDto including leader history;
+  
+  #palegreen:Return team details with leader history;
+}
+
+stop
+
+@enduml

@@ -1,0 +1,48 @@
+@startuml Receiving Message Sequence Diagram
+
+actor "Sender Client" as Sender
+actor "Receiver Client" as Receiver
+participant "ChatsController" as Controller
+participant "ChannelService" as Service
+participant "RedisPubClient" as RedisPub
+participant "RedisSubClient" as RedisSub
+participant "ChatGateway" as Gateway
+participant "Socket.IO Server" as SocketServer
+
+Sender -> Controller: POST /teams/channels/:channelId\nwith CreateMessageDto
+Controller -> Service: AddMessage(channelId, userId, dto)
+Service -> Service: Process message
+Service -> RedisPub: publish(RedisProvidersSubs.CHAT, eventMessage)
+note right of Service
+  SentMessageChatDto {
+    ChannelId: string
+    ThreadId: string
+    Message: MessagesDto
+  }
+end note
+
+RedisPub -> RedisSub: Message published to 'chat' channel
+RedisSub -> Gateway: on("message", callback)
+Gateway -> Gateway: Parse message data
+Gateway -> SocketServer: server.to(`${channelId}_${threadId}`).emit('chat', message)
+
+note right of Receiver
+  Client connects to WebSocket
+  and joins channel room
+end note
+
+Receiver -> Gateway: socket.connect()
+Gateway -> Gateway: handleConnection(client)
+Gateway -> Gateway: Validate JWT token
+
+Receiver -> Gateway: emit('JoinChannel', { ChannelId, ThreadId })
+Gateway -> Gateway: handleJoinRoom(data, client)
+Gateway -> SocketServer: client.join(`${channelId}_${threadId}`)
+
+SocketServer -> Receiver: emit('chat', message)
+note right of Receiver
+  Client receives message and
+  updates UI with new message
+end note
+
+@enduml

@@ -1,0 +1,78 @@
+@startuml
+!define RECTANGLE class
+skinparam componentStyle rectangle
+
+package "Central Gateway" {
+  component "API Gateway" as Gateway{
+  }
+}
+
+package "Modules" {
+  package "Common" {
+  component "FileModule" as File {
+     RECTANGLE "FileService" as FS
+   }
+ }
+
+  component "AI Module" as AI {
+    RECTANGLE "AIService" as AIS
+  }
+
+  component "UsersModule" as Users {
+    RECTANGLE "UsersController" as UC
+    RECTANGLE "UsersService" as US
+    UC --> US
+    Gateway --> UC
+  }
+
+  component "CommunitiesModule" as Communities {
+    RECTANGLE "CommunitiesController" as CC
+    RECTANGLE "CommunitiesService" as CS
+    RECTANGLE "CommunitiesRepository" as CR
+    CC --> CS
+    CS --> CR
+    CS --> US : calls UsersService
+    CS --> FS : uses FileService
+    Gateway --> CC
+  }
+
+  component "TeamsModule" as Teams {
+    RECTANGLE "TeamsController" as TC
+    RECTANGLE "TeamsService" as TS
+    RECTANGLE "ChannelService" as ChanS
+    RECTANGLE "AchievementService" as AchS
+    RECTANGLE "TeamsRepository" as TR
+    TC --> TS
+    TS --> TR
+    TS --> CS : calls CommunitiesService
+    TS --> ChanS
+    TS --> AchS
+    TS --> US : calls UsersService
+    TS --> FS : uses FileService
+    Gateway --> TC
+  }
+
+  component "SubTeamsModule" as SubTeams {
+    RECTANGLE "SubTeamsController" as STC
+    RECTANGLE "SubTeamsService" as STS
+    RECTANGLE "SubTeamsRepository" as STR
+    RECTANGLE "MemberService" as MemS
+    RECTANGLE "ChannelService" as SubChanS
+    RECTANGLE "LearningPhaseService" as LearnS
+    STC --> STS
+    STS --> STR
+    STS --> TS : calls TeamsService
+    STS --> MemS
+    STS --> SubChanS
+    STS --> LearnS
+    STS --> US : calls UsersService
+    STS --> FS : uses FileService
+    LearnS --> AIS : uses AI service
+    STC --> AIS : uses AI service
+    Gateway --> STC
+  }
+
+}
+
+
+@enduml

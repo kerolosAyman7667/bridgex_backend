@@ -1,0 +1,45 @@
+@startuml Create Channel Sequence Diagram
+
+actor Client
+participant "TeamChannelController\nor\nSubTeamChannelController" as Controller
+participant "TeamChannelService\nor\nSubTeamChannelService" as Service
+participant "TeamService\nor\nSubTeamService" as TeamService
+participant "ChannelsRepository" as ChannelsRepo
+database Database
+
+Client -> Controller: POST /teams/channels or\nPOST /subteams/channels\nwith ChannelCreateDto
+note right of Client
+  ChannelCreateDto {
+    Name: string
+  }
+end note
+
+Controller -> Controller: Extract JWT token\nand validate user
+Controller -> Service: AddChannel(searchId, dto, leaderId)
+
+Service -> TeamService: VerifyLeaderId(teamId, leaderId)
+TeamService -> TeamService: Check if user is leader
+TeamService --> Service: Return team/subteam
+
+Service -> ChannelsRepo: FindAll(name, teamId)
+ChannelsRepo -> Database: Query for existing channels
+Database --> ChannelsRepo: Return results
+ChannelsRepo --> Service: Return channels
+
+Service -> Service: Check if channel with same name exists
+note right of Service
+  If channel with same name exists,
+  throw ConflictException
+end note
+
+Service -> Service: Create new channel object
+Service -> ChannelsRepo: Insert(channel)
+ChannelsRepo -> Database: Insert new channel
+Database --> ChannelsRepo: Confirm insertion
+ChannelsRepo --> Service: Return success
+
+Service -> Service: Create ChannelDto response
+Service --> Controller: Return ChannelDto
+Controller --> Client: Return HTTP 201 Created with ChannelDto
+
+@enduml

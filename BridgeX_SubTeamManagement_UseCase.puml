@@ -1,0 +1,101 @@
+@startuml BridgeX_SubTeamManagement_UseCase
+
+' Title
+title BridgeX Platform - SubTeam Management Use Case Diagram
+
+' Styling and layout improvements
+skinparam usecase {
+  BackgroundColor #E8F4F9
+  BorderColor #2980B9
+  ArrowColor #2980B9
+  ActorBorderColor #2980B9
+  ActorBackgroundColor #E8F4F9
+  ActorFontColor #2980B9
+  FontStyle bold
+  FontSize 14
+  Stereotypefontsize 12
+}
+
+skinparam rectangle {
+  BackgroundColor transparent
+  BorderColor #2980B9
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 16
+  Roundcorner 20
+}
+
+skinparam package {
+  BackgroundColor #F5F5F5
+  BorderColor #3498DB
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 14
+}
+
+skinparam note {
+  BackgroundColor #FFF9C4
+  BorderColor #F9A825
+  FontColor #333333
+  FontSize 13
+}
+
+skinparam handwritten false
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam ArrowThickness 1.5
+skinparam defaultFontName Arial
+
+' Define actors with custom icons
+actor "Student" as Student #E8F4F9
+actor "Team Leader" as TeamLeader #E8F4F9
+actor "Community Leader" as CommunityLeader #E8F4F9
+actor "Super Admin" as SuperAdmin #E8F4F9
+
+' Group use cases by functionality
+rectangle "SubTeam Management" {
+  usecase "Create SubTeam" as CreateSubTeam #E1F5FE
+  usecase "View SubTeams" as ViewSubTeams #E1F5FE
+  usecase "Update SubTeam" as UpdateSubTeam #E1F5FE
+  usecase "Manage SubTeam Media" as ManageSubTeamMedia #E1F5FE
+  usecase "Join SubTeam" as JoinSubTeam #E1F5FE
+  usecase "Leave SubTeam" as LeaveSubTeam #E1F5FE
+}
+
+' Define relationships with cleaner layout and descriptions
+' Common use cases for all users
+ViewSubTeams <-- Student : browses
+ViewSubTeams <-- TeamLeader : monitors
+ViewSubTeams <-- CommunityLeader : oversees
+ViewSubTeams <-- SuperAdmin : monitors
+
+' Student-specific relationships
+Student -[#4CAF50]-> JoinSubTeam : becomes member
+Student -[#4CAF50]-> LeaveSubTeam : exits membership
+
+' Team Leader-specific relationships
+TeamLeader -[#FF5722]-> CreateSubTeam : establishes
+TeamLeader -[#FF5722]-> UpdateSubTeam : modifies details
+TeamLeader -[#FF5722]-> ManageSubTeamMedia : uploads media
+
+note bottom of CreateSubTeam
+  Team Leaders can create SubTeams within their teams
+end note
+
+note bottom of JoinSubTeam
+  Students can join SubTeams to participate in team activities
+end note
+
+note bottom of LeaveSubTeam
+  Students can leave SubTeams when they no longer wish to participate
+end note
+
+legend right
+  <b>SubTeam Management Module</b>
+  This diagram shows the SubTeam creation and
+  management features of the BridgeX platform.
+  SubTeams are smaller working groups within Teams.
+end legend
+
+@enduml

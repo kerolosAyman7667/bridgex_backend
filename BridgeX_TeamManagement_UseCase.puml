@@ -1,0 +1,96 @@
+@startuml BridgeX_TeamManagement_UseCase
+
+' Title
+title BridgeX Platform - Team Management Use Case Diagram
+
+' Styling and layout improvements
+skinparam usecase {
+  BackgroundColor #E8F4F9
+  BorderColor #2980B9
+  ArrowColor #2980B9
+  ActorBorderColor #2980B9
+  ActorBackgroundColor #E8F4F9
+  ActorFontColor #2980B9
+  FontStyle bold
+  FontSize 14
+  Stereotypefontsize 12
+}
+
+skinparam rectangle {
+  BackgroundColor transparent
+  BorderColor #2980B9
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 16
+  Roundcorner 20
+}
+
+skinparam package {
+  BackgroundColor #F5F5F5
+  BorderColor #3498DB
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 14
+}
+
+skinparam note {
+  BackgroundColor #FFF9C4
+  BorderColor #F9A825
+  FontColor #333333
+  FontSize 13
+}
+
+skinparam handwritten false
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam ArrowThickness 1.5
+skinparam defaultFontName Arial
+
+' Define actors with custom icons
+actor "Student" as Student #E8F4F9
+actor "Team Leader" as TeamLeader #E8F4F9
+actor "Community Leader" as CommunityLeader #E8F4F9
+actor "Super Admin" as SuperAdmin #E8F4F9
+
+' Group use cases by functionality
+rectangle "Team Management" {
+  usecase "Create Team" as CreateTeam #E1F5FE
+  usecase "View Teams" as ViewTeams #E1F5FE
+  usecase "Update Team" as UpdateTeam #E1F5FE
+  usecase "Manage Team Media" as ManageTeamMedia #E1F5FE
+  usecase "Add Team Achievement" as AddTeamAchievement #E1F5FE
+}
+
+' Define relationships with cleaner layout and descriptions
+' Common use cases for all users
+ViewTeams <-- Student : browses
+ViewTeams <-- TeamLeader : monitors
+ViewTeams <-- CommunityLeader : oversees
+ViewTeams <-- SuperAdmin : monitors
+
+' Team Leader-specific relationships
+TeamLeader -[#FF5722]-> CreateTeam : establishes
+TeamLeader -[#FF5722]-> UpdateTeam : modifies details
+TeamLeader -[#FF5722]-> ManageTeamMedia : uploads media
+TeamLeader -[#FF5722]-> AddTeamAchievement : records accomplishments
+
+note bottom of CreateTeam
+  Team Leaders can create teams within communities
+end note
+
+note bottom of AddTeamAchievement
+  Team Leaders can add achievements to showcase team accomplishments
+end note
+
+note right of UpdateTeam
+  Team Leaders can only update their own teams
+end note
+
+legend right
+  <b>Team Management Module</b>
+  This diagram shows the team creation and
+  management features of the BridgeX platform.
+end legend
+
+@enduml

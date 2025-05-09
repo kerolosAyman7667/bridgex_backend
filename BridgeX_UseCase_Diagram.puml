@@ -1,0 +1,166 @@
+@startuml BridgeX Use Case Diagram
+
+' Styling and layout improvements
+skinparam usecase {
+  BackgroundColor #F8F9FA
+  BorderColor #2C3E50
+  ArrowColor #2C3E50
+  ActorBorderColor #2C3E50
+  ActorBackgroundColor #F8F9FA
+  ActorFontColor #2C3E50
+}
+
+skinparam rectangle {
+  BackgroundColor transparent
+  BorderColor #2C3E50
+  FontColor #2C3E50
+}
+
+skinparam handwritten false
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+' Define actors with custom icons
+:Student: as Student
+:Team Leader: as TeamLeader
+:Community Leader: as CommunityLeader
+:Super Admin: as SuperAdmin
+:AI Assistant: as AI
+
+' Group use cases by functionality
+rectangle "BridgeX Platform" {
+  together {
+    package "User Management" {
+      usecase "Sign Up" as SignUp
+      usecase "Login" as Login
+      usecase "Verify Email" as VerifyEmail
+      usecase "Update Profile" as UpdateProfile
+      usecase "View Profile" as ViewProfile
+      usecase "Upload Profile Photo" as UploadProfilePhoto
+    }
+
+    package "Community Management" {
+      usecase "Create Community" as CreateCommunity
+      usecase "View Communities" as ViewCommunities
+      usecase "Update Community" as UpdateCommunity
+      usecase "Manage Community Media" as ManageCommunityMedia
+    }
+  }
+
+  together {
+    package "Team Management" {
+      usecase "Create Team" as CreateTeam
+      usecase "View Teams" as ViewTeams
+      usecase "Update Team" as UpdateTeam
+      usecase "Manage Team Media" as ManageTeamMedia
+      usecase "Add Team Achievement" as AddTeamAchievement
+    }
+
+    package "SubTeam Management" {
+      usecase "Create SubTeam" as CreateSubTeam
+      usecase "View SubTeams" as ViewSubTeams
+      usecase "Update SubTeam" as UpdateSubTeam
+      usecase "Manage SubTeam Media" as ManageSubTeamMedia
+      usecase "Join SubTeam" as JoinSubTeam
+      usecase "Leave SubTeam" as LeaveSubTeam
+    }
+  }
+
+  together {
+    package "Learning Phase" {
+      usecase "Create Learning Section" as CreateLearningSection
+      usecase "Upload Learning Resources" as UploadLearningResources
+      usecase "Upload Learning Videos" as UploadLearningVideos
+      usecase "Track Learning Progress" as TrackLearningProgress
+      usecase "Complete Learning Video" as CompleteVideo
+      usecase "Chat with AI about Learning" as ChatWithAI
+    }
+
+    package "Channel & Chat" {
+      usecase "Create Channel" as CreateChannel
+      usecase "View Channels" as ViewChannels
+      usecase "Send Message" as SendMessage
+      usecase "Create Thread" as CreateThread
+      usecase "View Messages" as ViewMessages
+    }
+  }
+}
+
+' Define relationships with cleaner layout
+' Common use cases for all users
+Login <-- Student
+Login <-- TeamLeader
+Login <-- CommunityLeader
+Login <-- SuperAdmin
+
+ViewProfile <-- Student
+ViewProfile <-- TeamLeader
+ViewProfile <-- CommunityLeader
+
+UpdateProfile <-- Student
+UpdateProfile <-- TeamLeader
+UpdateProfile <-- CommunityLeader
+
+ViewCommunities <-- Student
+ViewCommunities <-- TeamLeader
+ViewCommunities <-- CommunityLeader
+ViewCommunities <-- SuperAdmin
+
+ViewTeams <-- Student
+ViewTeams <-- TeamLeader
+ViewTeams <-- CommunityLeader
+ViewTeams <-- SuperAdmin
+
+ViewSubTeams <-- Student
+ViewSubTeams <-- TeamLeader
+ViewSubTeams <-- CommunityLeader
+ViewSubTeams <-- SuperAdmin
+
+' Student-specific relationships
+Student --> SignUp
+Student --> VerifyEmail
+Student --> UploadProfilePhoto
+Student --> JoinSubTeam
+Student --> LeaveSubTeam
+Student --> TrackLearningProgress
+Student --> CompleteVideo
+Student --> ChatWithAI
+Student --> ViewChannels
+Student --> SendMessage
+Student --> CreateThread
+Student --> ViewMessages
+
+' Team Leader-specific relationships
+TeamLeader --> CreateTeam
+TeamLeader --> UpdateTeam
+TeamLeader --> ManageTeamMedia
+TeamLeader --> AddTeamAchievement
+TeamLeader --> CreateSubTeam
+TeamLeader --> UpdateSubTeam
+TeamLeader --> ManageSubTeamMedia
+TeamLeader --> CreateLearningSection
+TeamLeader --> UploadLearningResources
+TeamLeader --> UploadLearningVideos
+TeamLeader --> CreateChannel
+TeamLeader --> ViewChannels
+TeamLeader --> SendMessage
+TeamLeader --> CreateThread
+TeamLeader --> ViewMessages
+
+' Community Leader-specific relationships
+CommunityLeader --> UpdateCommunity
+CommunityLeader --> ManageCommunityMedia
+CommunityLeader --> ViewChannels
+CommunityLeader --> SendMessage
+CommunityLeader --> CreateThread
+CommunityLeader --> ViewMessages
+
+' Super Admin-specific relationships
+SuperAdmin --> CreateCommunity
+SuperAdmin --> UpdateCommunity
+
+' AI Assistant relationships
+AI --> ChatWithAI
+
+@enduml

@@ -1,0 +1,85 @@
+@startuml BridgeX_UserManagement_UseCase
+
+' Title
+title BridgeX Platform - User Management Use Case Diagram
+
+' Styling and layout improvements
+skinparam usecase {
+  BackgroundColor #E8F4F9
+  BorderColor #2980B9
+  ArrowColor #2980B9
+  ActorBorderColor #2980B9
+  ActorBackgroundColor #E8F4F9
+  ActorFontColor #2980B9
+  FontStyle bold
+  FontSize 14
+  Stereotypefontsize 12
+}
+
+skinparam rectangle {
+  BackgroundColor transparent
+  BorderColor #2980B9
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 16
+  Roundcorner 20
+}
+
+skinparam package {
+  BackgroundColor #F5F5F5
+  BorderColor #3498DB
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 14
+}
+
+skinparam handwritten false
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam ArrowThickness 1.5
+skinparam defaultFontName Arial
+
+' Define actors with custom icons
+actor "Student" as Student #E8F4F9
+actor "Team Leader" as TeamLeader #E8F4F9
+actor "Community Leader" as CommunityLeader #E8F4F9
+actor "Super Admin" as SuperAdmin #E8F4F9
+
+' Group use cases by functionality
+rectangle "User Management" {
+  usecase "Sign Up" as SignUp #E1F5FE
+  usecase "Login" as Login #E1F5FE
+  usecase "Verify Email" as VerifyEmail #E1F5FE
+  usecase "Update Profile" as UpdateProfile #E1F5FE
+  usecase "View Profile" as ViewProfile #E1F5FE
+  usecase "Upload Profile Photo" as UploadProfilePhoto #E1F5FE
+}
+
+' Define relationships with cleaner layout and descriptions
+' Common use cases for all users
+Login <-- Student : authenticates
+Login <-- TeamLeader : authenticates
+Login <-- CommunityLeader : authenticates
+Login <-- SuperAdmin : authenticates
+
+ViewProfile <-- Student : views own profile
+ViewProfile <-- TeamLeader : views own profile
+ViewProfile <-- CommunityLeader : views own profile
+
+UpdateProfile <-- Student : updates details
+UpdateProfile <-- TeamLeader : updates details
+UpdateProfile <-- CommunityLeader : updates details
+
+' Student-specific relationships
+Student --> SignUp : registers
+Student --> VerifyEmail : confirms email
+Student --> UploadProfilePhoto : personalizes profile
+
+legend right
+  <b>User Management Module</b>
+  This diagram shows the authentication and
+  profile management features of the BridgeX platform.
+end legend
+
+@enduml

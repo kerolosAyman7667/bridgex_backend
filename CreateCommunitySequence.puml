@@ -1,0 +1,74 @@
+@startuml Create Community Sequence
+
+actor "Super Admin" as Admin
+participant "CommunitiesController" as Controller
+participant "JWTGuard" as JWTGuard
+participant "SuperAdminGuard" as SuperAdminGuard
+participant "CommunitiesService" as Service
+participant "UsersService" as UserService
+participant "GenericRepo<Communities>" as CommunitiesRepo
+participant "NotificationService" as NotificationService
+participant "Mapper" as Mapper
+
+== Authentication ==
+Admin -> Controller: POST /communities\nwith CommunityCreateDto
+activate Controller
+
+Controller -> JWTGuard: canActivate()
+activate JWTGuard
+JWTGuard -> JWTGuard: Validate JWT token
+JWTGuard --> Controller: User authenticated
+deactivate JWTGuard
+
+Controller -> SuperAdminGuard: canActivate()
+activate SuperAdminGuard
+SuperAdminGuard -> SuperAdminGuard: Check if user is SuperAdmin
+SuperAdminGuard --> Controller: User is SuperAdmin
+deactivate SuperAdminGuard
+
+== Validation and Community Creation ==
+Controller -> Service: Insert(communityCreateDto)
+activate Service
+
+Service -> UserService: FindOne({Email: dto.LeaderEmail})
+activate UserService
+UserService --> Service: User object
+deactivate UserService
+
+Service -> Service: Validate user can be community leader
+note right: Check if user is not a team leader\nor active subteam member
+
+Service -> CommunitiesRepo: FindAll([{Name: dto.Name}, {LeaderId: user.Id}])
+activate CommunitiesRepo
+CommunitiesRepo --> Service: Existing communities (if any)
+deactivate CommunitiesRepo
+
+Service -> Service: Check for conflicts
+note right: Throw ConflictException if community\nname exists or user already leads a community
+
+Service -> Service: Create new Communities entity
+Service -> CommunitiesRepo: Insert(community, {Leader: true})
+activate CommunitiesRepo
+CommunitiesRepo -> CommunitiesRepo: Create entity
+CommunitiesRepo -> CommunitiesRepo: Insert into database
+CommunitiesRepo -> CommunitiesRepo: FindOne({Id: community.Id}, {Leader: true})
+CommunitiesRepo --> Service: Saved community with relations
+deactivate CommunitiesRepo
+
+Service -> NotificationService: SendLeaderCommunityEmail(user.Email, user.FirstName, community.Name)
+activate NotificationService
+NotificationService --> Service: Email sent
+deactivate NotificationService
+
+Service -> Mapper: mapAsync(community, Communities, CommunityCardDto)
+activate Mapper
+Mapper --> Service: CommunityCardDto
+deactivate Mapper
+
+Service --> Controller: CommunityCardDto
+deactivate Service
+
+Controller --> Admin: ResponseType<CommunityCardDto>\nStatus: 201, Message: "Added community successfully"
+deactivate Controller
+
+@enduml

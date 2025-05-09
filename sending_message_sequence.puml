@@ -1,0 +1,66 @@
+@startuml Sending Message Sequence Diagram
+
+actor Client
+participant "ChatsController" as Controller
+participant "ChannelService" as Service
+participant "UserService" as UserService
+participant "MembersService" as MembersService
+participant "ChannelsChatsRepo" as ChatsRepo
+participant "RedisPubClient" as RedisPub
+database Database
+
+Client -> Controller: POST /teams/channels/:channelId or\nPOST /subteams/channels/:channelId\nwith CreateMessageDto
+note right of Client
+  CreateMessageDto {
+    Message: string
+    ReplyToId?: string (optional)
+    ThreadId?: string (optional)
+  }
+end note
+
+Controller -> Controller: Extract JWT token\nand validate user
+Controller -> Service: AddMessage(channelId, userId, dto)
+
+Service -> UserService: FindById(userId)
+UserService -> Database: Query for user
+Database --> UserService: Return user
+UserService --> Service: Return user
+
+Service -> Service: Find channel by ID
+Service -> Database: Query for channel
+Database --> Service: Return channel
+
+Service -> MembersService: IsMemberExist(teamId, userId)
+MembersService -> Database: Check membership
+Database --> MembersService: Return membership status
+MembersService --> Service: Return if user is member
+
+Service -> Service: Create new chat object
+note right of Service
+  If ReplyToId is provided,
+  verify the message exists
+  
+  If ThreadId is provided,
+  verify the thread exists
+end note
+
+Service -> ChatsRepo: Insert(chat)
+ChatsRepo -> Database: Insert new message
+Database --> ChatsRepo: Confirm insertion
+ChatsRepo --> Service: Return success
+
+Service -> Service: Create SentMessageChatDto
+Service -> Service: Map chat to MessagesDto
+Service -> RedisPub: publish(RedisProvidersSubs.CHAT, eventMessage)
+note right of Service
+  SentMessageChatDto {
+    ChannelId: string
+    ThreadId: string
+    Message: MessagesDto
+  }
+end note
+
+Service --> Controller: Return MessagesDto
+Controller --> Client: Return HTTP 200 OK with MessagesDto
+
+@enduml

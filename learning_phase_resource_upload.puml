@@ -1,0 +1,74 @@
+@startuml Learning Phase Resource Upload
+
+actor User
+participant "LearningPhaseController" as Controller
+participant "LearningPhaseService" as Service
+participant "FileService" as FileService
+participant "AIUrlService" as AIService
+participant "Database" as DB
+
+title Learning Phase - Resource Upload Sequence
+
+User -> Controller: POST /section/:sectionId/resource\n(file, CreateResourceDto)
+activate Controller
+
+Controller -> Controller: Validate request
+Controller -> Service: UploadResource(dto, file, searchIds, userId)
+activate Service
+
+Service -> Service: Verify leader permissions
+Service -> DB: Find section by ID
+activate DB
+DB --> Service: Return section
+deactivate DB
+
+Service -> FileService: Upload(files, LearningPhaseResourcesFileOptions)
+activate FileService
+FileService -> FileService: Validate file (size, type)
+FileService -> FileService: Generate unique filename
+FileService -> FileService: Save file to disk
+FileService --> Service: Return FileReturn[]
+deactivate FileService
+
+Service -> DB: Create and insert LearningPhaseResources
+activate DB
+DB --> Service: Return saved resource
+deactivate DB
+
+alt File is PDF, DOC, DOCX, or TXT
+    Service -> Service: UploadFileToAi(fileUpload, subTeam, resource)
+    activate Service
+    
+    alt File is PDF or TXT
+        Service -> AIService: AddAsset(knowledgeBaseId, filePath)
+        activate AIService
+        AIService -> AIService: Upload file to AI service
+        AIService --> Service: Return CreateAssetResponseDto
+        deactivate AIService
+    else File is DOC or DOCX
+        Service -> FileService: ConvertToPdf(filePath)
+        activate FileService
+        FileService --> Service: Return Buffer
+        deactivate FileService
+        
+        Service -> AIService: AddAsset(knowledgeBaseId, fileBuffer, fileName)
+        activate AIService
+        AIService -> AIService: Upload converted file to AI service
+        AIService --> Service: Return CreateAssetResponseDto
+        deactivate AIService
+    end
+    
+    Service -> DB: Update resource with AIAssetId
+    activate DB
+    DB --> Service: Return updated resource
+    deactivate DB
+    deactivate Service
+end
+
+Service --> Controller: Return LearningPhaseResourceDto
+deactivate Service
+
+Controller --> User: Return ResponseType<LearningPhaseResourceDto>
+deactivate Controller
+
+@enduml

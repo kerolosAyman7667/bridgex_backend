@@ -1,0 +1,40 @@
+@startuml Learning Phase Structure
+
+!define ENTITY class
+
+ENTITY SubTeam {
+  +Id: string
+  +Name: string
+  +LearningPhaseTitle: string
+  +KnowledgeBaseId: string
+}
+
+ENTITY LearningPhaseSection {
+  +Id: string
+  +Name: string
+  +Number: number
+  +SubTeamId: string
+}
+
+ENTITY LearningPhaseResource {
+  +Id: string
+  +Name: string
+  +File: string
+  +SectionId: string
+  +AIAssetId: string
+}
+
+ENTITY LearningPhaseVideo {
+  +Id: string
+  +Name: string
+  +File: string
+  +SectionId: string
+  +Duration: number
+  +Desc: string
+}
+
+SubTeam "1" -- "many" LearningPhaseSection : contains >
+LearningPhaseSection "1" -- "many" LearningPhaseResource : contains >
+LearningPhaseSection "1" -- "many" LearningPhaseVideo : contains >
+
+@enduml

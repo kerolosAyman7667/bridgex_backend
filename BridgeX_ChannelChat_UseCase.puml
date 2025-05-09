@@ -1,0 +1,100 @@
+@startuml BridgeX_ChannelChat_UseCase
+
+' Title
+title BridgeX Platform - Channel & Chat Use Case Diagram
+
+' Styling and layout improvements
+skinparam usecase {
+  BackgroundColor #E8F4F9
+  BorderColor #2980B9
+  ArrowColor #2980B9
+  ActorBorderColor #2980B9
+  ActorBackgroundColor #E8F4F9
+  ActorFontColor #2980B9
+  FontStyle bold
+  FontSize 14
+  Stereotypefontsize 12
+}
+
+skinparam rectangle {
+  BackgroundColor transparent
+  BorderColor #2980B9
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 16
+  Roundcorner 20
+}
+
+skinparam package {
+  BackgroundColor #F5F5F5
+  BorderColor #3498DB
+  FontColor #2980B9
+  FontStyle bold
+  FontSize 14
+}
+
+skinparam note {
+  BackgroundColor #FFF9C4
+  BorderColor #F9A825
+  FontColor #333333
+  FontSize 13
+}
+
+skinparam handwritten false
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam ArrowThickness 1.5
+skinparam defaultFontName Arial
+
+' Define actors with custom icons
+actor "Student" as Student #E8F4F9
+actor "Team Leader" as TeamLeader #E8F4F9
+actor "Community Leader" as CommunityLeader #E8F4F9
+
+' Group use cases by functionality
+rectangle "Channel & Chat" {
+  usecase "Create Channel" as CreateChannel #E1F5FE
+  usecase "View Channels" as ViewChannels #E1F5FE
+  usecase "Send Message" as SendMessage #E1F5FE
+  usecase "Create Thread" as CreateThread #E1F5FE
+  usecase "View Messages" as ViewMessages #E1F5FE
+}
+
+' Common chat functionality with color-coded relationships
+Student -[#4CAF50]-> ViewChannels : browses
+Student -[#4CAF50]-> SendMessage : communicates
+Student -[#4CAF50]-> CreateThread : starts discussion
+Student -[#4CAF50]-> ViewMessages : reads
+
+TeamLeader -[#FF5722]-> CreateChannel : establishes
+TeamLeader -[#FF5722]-> ViewChannels : monitors
+TeamLeader -[#FF5722]-> SendMessage : communicates
+TeamLeader -[#FF5722]-> CreateThread : starts discussion
+TeamLeader -[#FF5722]-> ViewMessages : reads
+
+CommunityLeader -[#9C27B0]-> ViewChannels : oversees
+CommunityLeader -[#9C27B0]-> SendMessage : communicates
+CommunityLeader -[#9C27B0]-> CreateThread : starts discussion
+CommunityLeader -[#9C27B0]-> ViewMessages : reads
+
+note bottom of CreateChannel
+  Only Team Leaders can create communication channels
+end note
+
+note bottom of CreateThread
+  All users can create discussion threads within channels
+end note
+
+note bottom of SendMessage
+  All users can send messages in channels and threads
+end note
+
+legend right
+  <b>Channel & Chat Module</b>
+  This diagram shows the communication features
+  of the BridgeX platform, allowing users to
+  create channels, threads, and exchange messages.
+end legend
+
+@enduml

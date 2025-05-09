@@ -1,0 +1,46 @@
+@startuml Learning Phase Resource Upload Simplified
+
+actor User
+participant "LearningPhaseController" as Controller
+participant "LearningPhaseService" as Service
+participant "FileService" as FileService
+participant "AIService" as AIService
+participant "Database" as DB
+
+title Learning Phase - Resource Upload (Simplified)
+
+User -> Controller: Upload Resource\n(file, resourceName)
+activate Controller
+
+Controller -> Service: UploadResource()
+activate Service
+
+Service -> FileService: Upload file
+activate FileService
+FileService --> Service: Return file info
+deactivate FileService
+
+Service -> DB: Save resource metadata
+activate DB
+DB --> Service: Confirm save
+deactivate DB
+
+alt Supported document format (PDF, DOC, DOCX, TXT)
+    Service -> AIService: Process file for AI knowledge base
+    activate AIService
+    AIService --> Service: Return asset ID
+    deactivate AIService
+    
+    Service -> DB: Update resource with AI asset ID
+    activate DB
+    DB --> Service: Confirm update
+    deactivate DB
+end
+
+Service --> Controller: Return resource details
+deactivate Service
+
+Controller --> User: Success response
+deactivate Controller
+
+@enduml
