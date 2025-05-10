@@ -22,10 +22,10 @@ export class SubTeamChannelChats extends EntityBase
     @AutoMap()
     ReplyToId?:string = null
 
-    @AutoMap()
+    @AutoMap(()=> SubTeamChannelChats)
     ReplyTo?:SubTeamChannelChats
     
-    @AutoMap()
+    @AutoMap(()=> [SubTeamChannelChats])
     Replies?:SubTeamChannelChats[]
 
     @AutoMap()

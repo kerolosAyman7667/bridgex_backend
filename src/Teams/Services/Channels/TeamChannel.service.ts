@@ -265,7 +265,7 @@ export class TeamsChannelService implements ITeamsChannelService {
                 }
             ]
 
-            const messageExist = await this.channelsChatsRepo.FindOne(chatSearch)
+            const messageExist = await this.channelsChatsRepo.FindOne(chatSearch,{User:true})
             if(!messageExist)
             {
                 throw new NotFoundException("Cant replying to non existing message")
@@ -283,13 +283,15 @@ export class TeamsChannelService implements ITeamsChannelService {
             chat.ThreadId = dto.ThreadId;
         }
 
-        await this.channelsChatsRepo.Insert(chat)
+        const chatDb = await this.channelsChatsRepo.Insert(chat)
         chat.User = user;
 
         const eventMessage = new SentMessageChatDto()
         eventMessage.ChannelId = channel.Id
         eventMessage.ThreadId = chat.ThreadId
         eventMessage.Message = await this.mapper.mapAsync(chat,TeamChannelChats,MessagesDto)
+        eventMessage.Message.CreatedAt = chatDb.CreatedAt;
+        
         this.redisPubClient.publish(RedisProvidersSubs.CHAT, JSON.stringify(eventMessage));
 
         return eventMessage.Message

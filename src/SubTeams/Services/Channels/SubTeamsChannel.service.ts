@@ -285,13 +285,15 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
             chat.ThreadId = dto.ThreadId;
         }
 
-        await this.channelsChatsRepo.Insert(chat)
+        const chatDb = await this.channelsChatsRepo.Insert(chat)
         chat.User = user;
 
         const eventMessage = new SentMessageChatDto()
         eventMessage.ChannelId = channel.Id
         eventMessage.ThreadId = chat.ThreadId
         eventMessage.Message = await this.mapper.mapAsync(chat,SubTeamChannelChats,MessagesDto)
+        eventMessage.Message.CreatedAt = chatDb.CreatedAt;
+
         this.redisPubClient.publish(RedisProvidersSubs.CHAT, JSON.stringify(eventMessage));
 
         return eventMessage.Message
