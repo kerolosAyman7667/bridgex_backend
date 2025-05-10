@@ -31,7 +31,7 @@ export interface IAIUrlService {
      * @param knowledgeBaseId 
      * @param filePath 
      */
-    AddAsset(knowledgeBaseId: string, filePath: string): Promise<CreateAssetResponseDto>
+    AddAsset(knowledgeBaseId: string, filePath: string,fileName:string): Promise<CreateAssetResponseDto>
 
     /**
      * 

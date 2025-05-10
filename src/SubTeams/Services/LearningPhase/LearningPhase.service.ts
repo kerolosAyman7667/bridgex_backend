@@ -353,12 +353,12 @@ export class LearningPhaseService implements ILearningPhaseService {
         let aiResponse:CreateAssetResponseDto;
         if(["pdf","txt"].includes(fileUpload.Extension))
         {
-            aiResponse = await this.aiService.AddAsset(subTeam.KnowledgeBaseId,fileUpload.FilePath)
+            aiResponse = await this.aiService.AddAsset(subTeam.KnowledgeBaseId,fileUpload.FilePath,fileUpload.OriginalName)
         }
         else if(["doc","docx"].includes(fileUpload.Extension))
         {
             let fileToSend:Buffer = await this.fileService.ConvertToPdf(fileUpload.FilePath);
-            aiResponse = await this.aiService.AddAsset(subTeam.KnowledgeBaseId,fileToSend,fileUpload.FileName)
+            aiResponse = await this.aiService.AddAsset(subTeam.KnowledgeBaseId,fileToSend,fileUpload.OriginalName)
         }
 
         const addedResource = await this.resourcesRepo.FindById(resource.Id);

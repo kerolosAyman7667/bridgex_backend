@@ -58,26 +58,31 @@ export class AIUrlService implements IAIUrlService{
 
 
     AddAsset(knowledgeBaseId: string, fileBuffer:Buffer,fileName:string): Promise<CreateAssetResponseDto> 
-    AddAsset(knowledgeBaseId: string, filePath: string): Promise<CreateAssetResponseDto>
+    AddAsset(knowledgeBaseId: string, filePath: string,fileName:string): Promise<CreateAssetResponseDto>
     async AddAsset(knowledgeBaseId: string, file?:Buffer | string,fileName?:string): Promise<CreateAssetResponseDto> {
         const FormData = require('form-data');
 
         const form = new FormData();
+        const name = fileName.substring(0,fileName.lastIndexOf('.'))+ ".pdf"
         if(Buffer.isBuffer(file))
         {
             const readable = new stream.PassThrough();
             readable.end(file);
 
             form.append('file',readable,{
-                filename: fileName.substring(0,fileName.lastIndexOf('.'))+ ".pdf",
+                filename: name,
                 contentType: 'application/pdf',
               });
         }else
         {
-            form.append('file',createReadStream(join(__dirname, "..", "..", "files",file)));
+            form.append('file',createReadStream(join(__dirname, "..", "..", "files",file)),{
+                filename: name ,
+                contentType: 'application/pdf',
+            });
         }
 
         try {
+            console.log(`upload asset start ${name}`)
             const response = await lastValueFrom(
                 this.httpService.post<CreateAssetResponseDto>(`${this.configService.getOrThrow<string>("AIBASEURL")}/assets/${knowledgeBaseId}`,
                     form, {
@@ -97,6 +102,7 @@ export class AIUrlService implements IAIUrlService{
                     }
                 ),
             ).then(() => {
+                console.log(`nlp/knowledge-bases index start ${name} ${response.data.asset_id}`)
                 try
                 {
                     this.httpService.post(
@@ -106,6 +112,7 @@ export class AIUrlService implements IAIUrlService{
                             "skip_duplicates": true
                         }
                     ).subscribe();
+                    console.log(`nlp/knowledge-bases index end ${name} ${response.data.asset_id}`)
                 }catch(err){console.log(err)}
             }).catch(ex=>{console.log(ex)});
 
