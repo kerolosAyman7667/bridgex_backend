@@ -1,8 +1,8 @@
 import { ChannelDto } from "src/Common/Channels/Dtos/Channel.dto";
-import { ChannelCreateDto } from "src/Common/Channels/Dtos/ChannelCreate.dto";
+import { ChannelCreateDto, ChannelCreateDtoWithPublic } from "src/Common/Channels/Dtos/ChannelCreate.dto";
 import { MessagesDto } from "src/Common/Channels/Dtos/Messages.dto";
 import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto";
-import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException, Scope } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, forwardRef, Inject, Injectable, NotFoundException, Scope } from "@nestjs/common";
 import { GenericRepo } from "src/Infrastructure/Database/Repos/GenericRepo";
 import { In, IsNull, LessThanOrEqual, MoreThanOrEqual, Raw } from "typeorm";
 import { ChatsPaginationDto } from "src/Common/Channels/Dtos/ChatsPagination.dto";
@@ -47,7 +47,7 @@ export class TeamsChannelService implements ITeamsChannelService {
      async GetByTeam(teamId: TeamSearchId): Promise<ChannelDto[]> 
     {
         const team = await this.teamService.GetTeam(teamId.teamId,teamId.communityId)
-        const data = await this.channelsRepo.FindAll({TeamId:team.Id});
+        const data = (await this.channelsRepo.Repo.find({where:{TeamId:team.Id},order:{CreatedAt:"ASC"}}));
 
         return await this.mapper.mapArrayAsync(data,TeamChannels,ChannelDto)
     }
@@ -57,7 +57,7 @@ export class TeamsChannelService implements ITeamsChannelService {
         return await this.mapper.mapArrayAsync(data,TeamChannels,ChannelDto);
     }
 
-    async AddChannel(searchId: TeamSearchId, dto: ChannelCreateDto, leaderId: string): Promise<ChannelDto> {
+    async AddChannel(searchId: TeamSearchId, dto: ChannelCreateDtoWithPublic, leaderId: string): Promise<ChannelDto> {
         const team = await this.teamService.VerifyLeaderId(searchId.teamId, leaderId);
         const isExistChannel = await this.channelsRepo.FindAll(
             { Name: Raw(alias => `LOWER(${alias}) = LOWER(:name)`, { name: dto.Name.toLowerCase() }), TeamId: team.Id },
@@ -70,17 +70,19 @@ export class TeamsChannelService implements ITeamsChannelService {
         const channel = new TeamChannels();
         channel.Name = dto.Name
         channel.TeamId = team.Id
+        channel.IsPublic = dto.IsPublic
         await this.channelsRepo.Insert(channel)
 
         const returnChannel = new ChannelDto();
         returnChannel.Name = channel.Name
         returnChannel.Id = channel.Id
         returnChannel.CreatedAt = channel.CreatedAt
+        returnChannel.IsPublic = channel.IsPublic
 
         return returnChannel
     }
 
-    async UpdateChannel(searchId: TeamSearchId, channelId: string, dto: ChannelCreateDto, leaderId: string): Promise<void> 
+    async UpdateChannel(searchId: TeamSearchId, channelId: string, dto: ChannelCreateDtoWithPublic, leaderId: string): Promise<void> 
     {
         const team = await this.teamService.VerifyLeaderId(searchId.teamId, leaderId);
         const channel = await this.channelsRepo.FindOne({Id:channelId,TeamId:team.Id})
@@ -97,6 +99,7 @@ export class TeamsChannelService implements ITeamsChannelService {
             throw new ConflictException("There is a channel exist with same name");
         }
         channel.Name = dto.Name
+        channel.IsPublic = dto.IsPublic
         await this.channelsRepo.Update(channel.Id,channel);
     }
 
@@ -116,10 +119,13 @@ export class TeamsChannelService implements ITeamsChannelService {
         {
             throw new NotFoundException("Channel not found")
         }
-        const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
-        if(!isMember.IsLeader && !isMember.IsMember)
+        if(!channel.IsPublic)
         {
-            throw new NotFoundException("Channel not found")
+            const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
+            if(!isMember.IsLeader && !isMember.IsMember)
+            {
+                throw new NotFoundException("Channel not found")
+            }
         }
         const pagination =  new ChatsPaginationDto()
         pagination.Page = page;
@@ -170,7 +176,7 @@ export class TeamsChannelService implements ITeamsChannelService {
         const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
         if(!isMember.IsLeader && !isMember.IsMember)
         {
-            throw new NotFoundException("Channel not found")
+            throw new ForbiddenException("You must be member or leader to create thread")
         }
         const message:TeamChannelChats = await this.channelsChatsRepo.FindOne(
             {
@@ -210,10 +216,13 @@ export class TeamsChannelService implements ITeamsChannelService {
         {
             throw new NotFoundException("Channel not found")
         }
-        const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
-        if(!isMember.IsLeader && !isMember.IsMember)
+        if(!channel.IsPublic)
         {
-            throw new NotFoundException("Channel not found")
+            const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
+            if(!isMember.IsLeader && !isMember.IsMember)
+            {
+                throw new NotFoundException("Channel not found")
+            }
         }
 
         const pagination =  new ChatsPaginationDto()
@@ -230,12 +239,15 @@ export class TeamsChannelService implements ITeamsChannelService {
         {
             throw new NotFoundException("Channel not found")
         }
-        const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
-        if(!isMember.IsLeader && !isMember.IsMember)
-        {
-            throw new NotFoundException("Channel not found")
-        }
 
+        if(!channel.IsPublic)
+        {
+            const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
+            if(!isMember.IsLeader && !isMember.IsMember)
+            {
+                throw new NotFoundException("Channel not found")
+            }
+        }
         const chat = new TeamChannelChats();
         chat.ChannelId = channel.Id;
         chat.Text = dto.Message;
@@ -265,7 +277,7 @@ export class TeamsChannelService implements ITeamsChannelService {
                 }
             ]
 
-            const messageExist = await this.channelsChatsRepo.FindOne(chatSearch)
+            const messageExist = await this.channelsChatsRepo.FindOne(chatSearch,{User:true})
             if(!messageExist)
             {
                 throw new NotFoundException("Cant replying to non existing message")
@@ -283,13 +295,15 @@ export class TeamsChannelService implements ITeamsChannelService {
             chat.ThreadId = dto.ThreadId;
         }
 
-        await this.channelsChatsRepo.Insert(chat)
+        const chatDb = await this.channelsChatsRepo.Insert(chat)
         chat.User = user;
 
         const eventMessage = new SentMessageChatDto()
         eventMessage.ChannelId = channel.Id
         eventMessage.ThreadId = chat.ThreadId
         eventMessage.Message = await this.mapper.mapAsync(chat,TeamChannelChats,MessagesDto)
+        eventMessage.Message.CreatedAt = chatDb.CreatedAt;
+        
         this.redisPubClient.publish(RedisProvidersSubs.CHAT, JSON.stringify(eventMessage));
 
         return eventMessage.Message
@@ -303,7 +317,7 @@ export class TeamsChannelService implements ITeamsChannelService {
             throw new NotFoundException("Channel not found")
         }
         const isMember = await this.teamService.IsMemberExist(channel.TeamId,userId);
-        if(!isMember.IsLeader && !isMember.IsMember)
+        if(!isMember.IsLeader && !isMember.IsMember && !channel.IsPublic)
         {
             throw new NotFoundException("Channel not found")
         }
@@ -320,7 +334,7 @@ export class TeamsChannelService implements ITeamsChannelService {
             throw new NotFoundException("Message not found");
         }
         message.Deleted = true
-        const updatedMessage = await this.channelsChatsRepo.Update(message.Id,message,{ReplyTo:{User:true}})
+        const updatedMessage = await this.channelsChatsRepo.Update(message.Id,message)
         updatedMessage.User = user;
 
         const eventMessage = new SentMessageChatDto()

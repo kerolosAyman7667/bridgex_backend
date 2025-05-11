@@ -50,7 +50,7 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
     async GetChannelsBySubTeam(searchId: SubTeamSearchId): Promise<ChannelDto[]> 
     {
         const subTeam = await this.subTeamService.GetSubTeamById(searchId.subTeamId)
-        const data = await this.channelsRepo.FindAll({SubTeamId:subTeam.Id});
+        const data = (await this.channelsRepo.Repo.find({where:{SubTeamId:subTeam.Id},order:{CreatedAt:"ASC"}}));
 
         return await this.mapper.mapArrayAsync(data,SubTeamChannels,ChannelDto)
     }
@@ -285,13 +285,15 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
             chat.ThreadId = dto.ThreadId;
         }
 
-        await this.channelsChatsRepo.Insert(chat)
+        const chatDb = await this.channelsChatsRepo.Insert(chat)
         chat.User = user;
 
         const eventMessage = new SentMessageChatDto()
         eventMessage.ChannelId = channel.Id
         eventMessage.ThreadId = chat.ThreadId
         eventMessage.Message = await this.mapper.mapAsync(chat,SubTeamChannelChats,MessagesDto)
+        eventMessage.Message.CreatedAt = chatDb.CreatedAt;
+
         this.redisPubClient.publish(RedisProvidersSubs.CHAT, JSON.stringify(eventMessage));
 
         return eventMessage.Message
@@ -322,7 +324,7 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
             throw new NotFoundException("Message not found");
         }
         message.Deleted = true
-        const updatedMessage = await this.channelsChatsRepo.Update(message.Id,message,{ReplyTo:{User:true}})
+        const updatedMessage = await this.channelsChatsRepo.Update(message.Id,message)
         updatedMessage.User = user;
 
         const eventMessage = new SentMessageChatDto()

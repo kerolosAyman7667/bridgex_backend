@@ -72,9 +72,9 @@ export class TeamAchievementService implements ITeamsAchievementService{
     }
 
     async GetByTeam(teamId: string): Promise<TeamAchievementDto[]> {
-        const achievement = await this.achRepo.FindAll({
+        const achievement = await this.achRepo.Repo.find({where:{
             TeamId: teamId,
-        })
+        },order:{CreatedAt:"desc"}})
 
         return await this.mapper.mapArrayAsync(achievement,TeamAchievements,TeamAchievementDto)
     }

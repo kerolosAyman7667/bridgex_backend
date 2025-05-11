@@ -14,4 +14,8 @@ export class ChannelDto
     @AutoMap()
     @ApiProperty()
     CreatedAt: Date
+
+    @AutoMap()
+    @ApiProperty()
+    IsPublic:boolean = false
 }

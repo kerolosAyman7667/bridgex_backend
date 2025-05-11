@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } 
 import { JWTGaurd } from "src/AuthModule/Gaurds/JWT.gaurd";
 import { CurrentUserDecorator } from "src/AuthModule/CurrentUser.decorator";
 import { TokenPayLoad } from "src/AuthModule/Dtos/TokenPayload";
-import { ChannelCreateDto } from "src/Common/Channels/Dtos/ChannelCreate.dto";
+import { ChannelCreateDto, ChannelCreateDtoWithPublic } from "src/Common/Channels/Dtos/ChannelCreate.dto";
 import { ChannelDto } from "src/Common/Channels/Dtos/Channel.dto";
 import { ResponseType } from "src/Common/ResponseType";
 import { SubTeamParamDecorator } from "src/SubTeams/Controllers/SubTeamParam";
@@ -43,7 +43,7 @@ export class TeamChannelController
     async CreateChannel
     (
         @Param(new TeamParamPipe()) search:TeamSearchId,
-        @Body() dto:ChannelCreateDto,
+        @Body() dto:ChannelCreateDtoWithPublic,
         @CurrentUserDecorator() user:TokenPayLoad  
     ): Promise<ResponseType<ChannelDto>>
     {
@@ -63,7 +63,7 @@ export class TeamChannelController
     (
         @Param(new TeamParamPipe()) search:TeamSearchIdWithChannelId,
         @Param("channelId") channelId:string,
-        @Body() dto:ChannelCreateDto,
+        @Body() dto:ChannelCreateDtoWithPublic,
         @CurrentUserDecorator() user:TokenPayLoad  
     )
     {

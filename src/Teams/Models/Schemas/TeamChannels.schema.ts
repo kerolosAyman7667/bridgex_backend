@@ -18,6 +18,11 @@ export class TeamChannelsSchema extends Schema<TeamChannels> {
                     type: "varchar",
                     length: 32,
                     nullable: false,
+                },
+                IsPublic:{
+                    type:"boolean",
+                    default:false,
+                    nullable:false
                 }
             },
             relations: {

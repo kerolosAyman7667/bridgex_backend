@@ -1,4 +1,4 @@
-import { createMap, forMember, mapFrom, MappingProfile } from '@automapper/core';
+import { createMap, forMember, mapFrom, MappingProfile, mapWith } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Mapper } from '@automapper/core';
 import { Injectable, } from '@nestjs/common';
@@ -50,7 +50,12 @@ export class TeamsProfile extends AutomapperProfile {
         createMap(mapper, TeamsMedia, MediaCreateDto),
         createMap(mapper, TeamAchievements, TeamAchievementDto)
         createMap(mapper, TeamChannels, ChannelDto);
-        createMap(mapper, TeamChannelChats, MessagesDto);
+        createMap(mapper, TeamChannelChats, MessagesDto,
+          forMember(
+            (destination: MessagesDto) => destination.ReplyTo,
+            mapWith(MessagesDto, TeamChannelChats, src => src.Deleted ? null : src.ReplyTo)
+          )
+        );
     };
   }
 

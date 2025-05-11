@@ -133,7 +133,7 @@ export class FileService implements IFileService {
             await this.SaveFile(filePath, file.buffer)
 
             filesPath.push(
-                new FileReturn(newFilename, path.join(fileOptions.Dest,newFilename),fileType.ext)
+                new FileReturn(newFilename, path.join(fileOptions.Dest,newFilename),fileType.ext,file.originalname)
             )
         }
 

@@ -120,14 +120,14 @@ export class ChatsController<T>
     @ApiParam({name:"messageId"})
     @ApiOperation({ summary: 'Delete a Message' })
     @ApiResponse({ status: 200 })
-    async DeleteThread
+    async DeleteMessage
     (
         @Param("channelId") channelId:string,
         @Param("messageId") messageId:string,
         @CurrentUserDecorator() user:TokenPayLoad ,
-    ) : Promise<ResponseType<void>>
+    ) : Promise<ResponseType<MessagesDto>>
     {
-        await this.channelsService.DeleteMessage(channelId,messageId,user.UserId)
-        return new ResponseType<void>(HttpStatus.OK,"Deleted message successfully")
+        const dto = await this.channelsService.DeleteMessage(channelId,messageId,user.UserId)
+        return new ResponseType<MessagesDto>(HttpStatus.OK,"Deleted message successfully",dto)
     }
 }
