@@ -1,7 +1,7 @@
 import { createMap, forMember, mapFrom, MappingProfile, mapWith } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Mapper } from '@automapper/core';
-import { Injectable, } from '@nestjs/common';
+import { Inject, Injectable, } from '@nestjs/common';
 import { SubTeams } from '../Models/SubTeams.entity';
 import { SubTeamCardDto } from '../Dtos/SubTeamCard.dto';
 import { SubTeamImages } from '../Models/SubTeamImages.entity';
@@ -72,7 +72,12 @@ export class SubTeamsProfile extends AutomapperProfile {
       );
       createMap(mapper, LearningPhaseSections, LearningPhaseSectionDto);
       createMap(mapper, SubTeamChannels, ChannelDto);
-      createMap(mapper, SubTeamChannelChats, MessagesDto);
+      createMap(mapper, SubTeamChannelChats, MessagesDto,
+        forMember(
+          (destination: MessagesDto) => destination.ReplyTo,
+          mapWith(MessagesDto, SubTeamChannelChats, src => src.Deleted ? null : src.ReplyTo)
+        )
+      );
     };
   }
 

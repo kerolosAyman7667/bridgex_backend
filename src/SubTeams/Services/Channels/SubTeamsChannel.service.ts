@@ -324,7 +324,7 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
             throw new NotFoundException("Message not found");
         }
         message.Deleted = true
-        const updatedMessage = await this.channelsChatsRepo.Update(message.Id,message,{ReplyTo:{User:true}})
+        const updatedMessage = await this.channelsChatsRepo.Update(message.Id,message)
         updatedMessage.User = user;
 
         const eventMessage = new SentMessageChatDto()
