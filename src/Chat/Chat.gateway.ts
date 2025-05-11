@@ -102,7 +102,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
 
         const clients = await this.server.in(channelId).fetchSockets();
-        const clientsSize = [...new Set(clients.map((item:any) => item?.user.Id))]
+        const clientsSize = [...new Set(clients.map((item:any) => item?.user.UserId ))]
         this.server.to(channelId).emit('totalUsers', {Count:clientsSize.length});
     }
 }
