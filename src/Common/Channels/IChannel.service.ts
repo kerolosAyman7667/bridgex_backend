@@ -23,7 +23,7 @@ export interface IChannelService<T> {
      * @param {string} channelId - The ID the channel
      * @param {ChannelCreateDto} dto
      * @param {string} leaderId - The ID of the leader performing the deletion
-     * @returns {Promise<TeamChannelDto>} the created channel
+     * @returns {Promise<void>} 
      * @throws {NotFoundException}
     */
     UpdateChannel(searchId: T,channelId:string, dto: ChannelCreateDto, leaderId: string): Promise<void>;
