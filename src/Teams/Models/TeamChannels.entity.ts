@@ -8,6 +8,9 @@ export class TeamChannels extends EntityBase
     Name!:string
 
     @AutoMap()
+    IsPublic:boolean = false
+
+    @AutoMap()
     TeamId!:string
 
     @AutoMap(()=> Teams)
