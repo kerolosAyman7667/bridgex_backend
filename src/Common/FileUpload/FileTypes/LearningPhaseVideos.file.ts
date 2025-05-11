@@ -11,4 +11,10 @@ class LearningPhaseVideosFile implements IFile
     FileType: IFileTypes = new VideosFileType();
 }
 
+class LearningPhaseVideosConvertedFile extends LearningPhaseVideosFile implements IFile
+{
+    Dest: string = "/learning/videos/converted/";
+}
+
 export const LearningPhaseVideosFileOptions =  new LearningPhaseVideosFile();
+export const LearningPhaseVideosConvertedFileOptions =  new LearningPhaseVideosConvertedFile();
