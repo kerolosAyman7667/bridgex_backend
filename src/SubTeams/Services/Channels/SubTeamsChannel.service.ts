@@ -50,7 +50,7 @@ export class SubTeamsChannelService implements ISubTeamsChannelService {
     async GetChannelsBySubTeam(searchId: SubTeamSearchId): Promise<ChannelDto[]> 
     {
         const subTeam = await this.subTeamService.GetSubTeamById(searchId.subTeamId)
-        const data = await this.channelsRepo.FindAll({SubTeamId:subTeam.Id});
+        const data = (await this.channelsRepo.Repo.find({where:{SubTeamId:subTeam.Id},order:{CreatedAt:"ASC"}}));
 
         return await this.mapper.mapArrayAsync(data,SubTeamChannels,ChannelDto)
     }
