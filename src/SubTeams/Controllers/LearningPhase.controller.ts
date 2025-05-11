@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Header, HttpStatus, Inject, NotFoundException, Param, Patch, Post, Req, Res, StreamableFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, Header, HttpStatus, Inject, NotFoundException, Param, Patch, Post, Query, Req, Res, StreamableFile, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiBody, ApiParam } from "@nestjs/swagger";
 import { JWTGaurd } from "src/AuthModule/Gaurds/JWT.gaurd";
 import { SubTeamParamDecorator, SubTeamParamPipe, SubTeamParamWithSectionPipe } from "./SubTeamParam";
@@ -24,10 +24,11 @@ import { createReadStream, promises } from "fs";
 import { join } from "path";
 import { VideosFileType } from "src/Common/FileUpload/FileTypes/Types/Videos.filetypes";
 import { AddUserProgressDto } from "../Dtos/LearningPhase/AddUserProgress.dto";
+import { ICacheService } from "src/Common/Generic/Contracts/ICacheService";
+import { randomBytes } from "crypto";
 
 @ApiTags('subteams/learningphase')
 @Controller('communities/:communityId/teams/:teamId/subteams/:subTeamId/learningphase')
-@UseGuards(JWTGaurd)
 @ApiBearerAuth()
 export class LearningPhaseController
 {
@@ -44,10 +45,14 @@ export class LearningPhaseController
     @Inject(IFileService)
     private readonly fileService:IFileService
 
+    @Inject(ICacheService)
+    private readonly cacheService:ICacheService
+
     @Get()
     @ApiOperation({ summary: 'Get sub team learning phase' })
     @ApiResponse({ status: 200, type: [LearningPhaseReturnDto] })
     @SubTeamParamDecorator(true)
+    @UseGuards(JWTGaurd)
     async Get
     (
         @Param(new SubTeamParamPipe()) search:SubTeamSearchId,
@@ -69,6 +74,9 @@ export class LearningPhaseController
         const learningPhase:LearningPhaseReturnDto = await this.subTeamService.GetLearningPhase(user.UserId,search.subTeamId);
         learningPhase.CanModify = canModify;
         learningPhase.IsMember = isValid.IsMember
+        const token = randomBytes(10).toString("hex");
+        await this.cacheService.SetSet({Key:`learning:${search.subTeamId}:${token}`,ObjectToAdd:user.UserId,TimeInSeconds:3600})
+        learningPhase.VideosToken = token
 
         return new ResponseType<LearningPhaseReturnDto>(HttpStatus.OK,"Learning phase successfully retrieved",learningPhase)
     }
@@ -78,6 +86,7 @@ export class LearningPhaseController
     @ApiResponse({ status: 201 })
     @ApiBody({type:CreateLearningPhaseDto})
     @SubTeamParamDecorator(true)
+    @UseGuards(JWTGaurd)
     async UpdateLearningData
     (
         @Param(new SubTeamParamPipe()) search:SubTeamSearchId,
@@ -94,6 +103,7 @@ export class LearningPhaseController
     @ApiResponse({ status: 201 ,type:LearningPhaseSectionDto})
     @ApiBody({type:CreateSectionDto})
     @SubTeamParamDecorator(true)
+    @UseGuards(JWTGaurd)
     async AddSection
     (
         @Body() dto:CreateSectionDto,
@@ -111,6 +121,7 @@ export class LearningPhaseController
     @ApiBody({type:CreateSectionDto})
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async UpdateSection
     (
         @Body() dto:CreateSectionDto,
@@ -127,6 +138,7 @@ export class LearningPhaseController
     @ApiResponse({ status: 200 })
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async DeleteSection
     (
         @Param(new SubTeamParamWithSectionPipe()) search:SubTeamSearchIdWithSection,
@@ -145,6 +157,7 @@ export class LearningPhaseController
     @ApiBody({type:CreateVideoDto})
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async UploadVideo(
         @UploadedFiles() files: Express.Multer.File[],
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSection,
@@ -166,6 +179,7 @@ export class LearningPhaseController
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
     @ApiParam({name:"videoId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async UpdateVideo
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
@@ -185,6 +199,7 @@ export class LearningPhaseController
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
     @ApiParam({name:"videoId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async ProgressVideo
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
@@ -203,6 +218,7 @@ export class LearningPhaseController
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
     @ApiParam({name:"videoId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async CompleteVideo
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
@@ -220,6 +236,7 @@ export class LearningPhaseController
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
     @ApiParam({name:"videoId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async DeleteVideo
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
@@ -238,6 +255,7 @@ export class LearningPhaseController
     @ApiBody({type:CreateResourceDto})
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async UploadResources(
         @UploadedFiles() files: Express.Multer.File[],
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSection,
@@ -259,6 +277,7 @@ export class LearningPhaseController
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
     @ApiParam({name:"resourceId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async UpdateResources
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionResource,
@@ -277,6 +296,7 @@ export class LearningPhaseController
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
     @ApiParam({name:"resourceId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async DeleteResource
     (
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionResource,
@@ -296,12 +316,19 @@ export class LearningPhaseController
     async handleGetVideo(
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
         @Param("videoId") videoId:string,
-        @CurrentUserDecorator() user:TokenPayLoad,
         @Req() req: any,
         @Res() res: any,
+        @Query("token") token:string
     ): Promise<void> {
         const video = await this.learningPhaseService.GetVideo(videoId,searchId);
-        const isMemberExits = await this.memberService.IsMemberExist(searchId.subTeamId,user.UserId);
+
+        const userId = await this.cacheService.GetSet({Key:`learning:${searchId.subTeamId}:${token}`})
+        if(!userId)
+        {
+            throw new NotFoundException("Resource not found")
+        }
+
+        const isMemberExits = await this.memberService.IsMemberExist(searchId.subTeamId,userId);
         if(!isMemberExits.IsLeader && !isMemberExits.IsMember)
         {
             throw new NotFoundException("Resource not found")
@@ -387,6 +414,7 @@ export class LearningPhaseController
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
     @ApiParam({name:"resourceId" , type:"string"})
+    @UseGuards(JWTGaurd)
     async handleGetResource(
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionResource,
         @Param("resourceId") resourceId:string,

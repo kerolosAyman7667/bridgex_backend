@@ -21,4 +21,8 @@ export class LearningPhaseReturnDto
     @AutoMap(()=> LearningPhaseSectionDto)
     @ApiProperty({ type: () => LearningPhaseSectionDto })
     Sections: LearningPhaseSectionDto[] = []
+
+    @AutoMap()
+    @ApiProperty()
+    VideosToken:string
 }

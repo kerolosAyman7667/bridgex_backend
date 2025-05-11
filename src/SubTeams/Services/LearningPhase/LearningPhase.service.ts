@@ -14,7 +14,7 @@ import { IFileService } from "src/Common/FileUpload/IFile.service";
 import { LearningPhaseResourcesFileOptions } from "src/Common/FileUpload/FileTypes/LearningPhaseResources.file";
 import { LearningPhaseResources } from "src/SubTeams/Models/LearningPhase/LearningPhaseResources.entity";
 import { LearningPhaseVideos } from "src/SubTeams/Models/LearningPhase/LearningPhaseVideos.entity";
-import { LearningPhaseVideosFileOptions } from "src/Common/FileUpload/FileTypes/LearningPhaseVideos.file";
+import { LearningPhaseVideosConvertedFileOptions, LearningPhaseVideosFileOptions } from "src/Common/FileUpload/FileTypes/LearningPhaseVideos.file";
 import { getVideoDurationInSeconds } from 'get-video-duration';
 import { UserProgress } from "src/SubTeams/Models/LearningPhase/UserProgress.entity";
 import { ISubTeamsMembersService } from "../Members/ISubTeamMembers.service";
@@ -25,6 +25,7 @@ import { FileReturn } from "src/Common/FileUpload/FileReturn";
 import { SubTeams } from "src/SubTeams/Models/SubTeams.entity";
 import { CreateAssetResponseDto } from "src/AIModule/Dtos/CreateAssetResponse.dto";
 import { writeFileSync } from "fs";
+import { VideoTranscodingService } from "src/Common/FileUpload/VideoTranscoding.service";
 
 @Injectable({scope:Scope.REQUEST})
 export class LearningPhaseService implements ILearningPhaseService {
@@ -54,6 +55,9 @@ export class LearningPhaseService implements ILearningPhaseService {
 
     @Inject(IAIUrlService)
     private readonly aiService:IAIUrlService
+
+    @Inject(VideoTranscodingService)
+    private readonly transService:VideoTranscodingService
 
 
     async GetVideo(videoId: string, searchIds: SubTeamSearchIdWithSection): Promise<LearningPhaseVideoDto> {
@@ -166,11 +170,17 @@ export class LearningPhaseService implements ILearningPhaseService {
                 LearningPhaseVideosFileOptions
             )
 
+        const fullFilePath = `${LearningPhaseVideosFileOptions.Dest}${fileUpload[0].FileName}`
+        // const fullOutputPath = `${LearningPhaseVideosConvertedFileOptions.Dest}${fileUpload[0].FileName}`
+        // await this.transService.transcodeToSupportedFormat(fullFilePath,fullOutputPath)
+
+
         const video = new LearningPhaseVideos();
         video.Name = dto.Name;
-        video.File = `${LearningPhaseVideosFileOptions.Dest}${fileUpload[0].FileName}`
+        video.File = fullFilePath
         video.SectionId = section.Id;
         video.Desc = dto.Desc;
+
         try {
             const duration = await getVideoDurationInSeconds(join(__dirname, "..", "..", "..", "..", "files", fileUpload[0].FilePath))
             video.Duration = duration;

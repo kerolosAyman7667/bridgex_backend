@@ -27,13 +27,14 @@ import { SubTeamChannelChatsController } from "./Controllers/SubTeamChannelChats
 import { EventsModule } from "src/Infrastructure/Events/Events.module";
 import { NotificationModule } from "src/Infrastructure/Notification/NotificationModule";
 import { LearningPhaseChat } from "./Models/LearningPhase/LearningPhaseChat.entity";
+import { CacheModule } from "src/Infrastructure/Cache/Cache.module";
 
 @Module({
     imports:[
        DatabaseModule.forFeature([SubTeams,SubTeamsMedia,SubTeamImages,SubTeamMembers,SubTeamChannelChats,SubTeamChannels,
         LearningPhaseSections,LearningPhaseResources,LearningPhaseVideos,UserProgress,LearningPhaseChat
        ]),
-       UsersModule,TeamsModule,AIModule,EventsModule,NotificationModule
+       UsersModule,TeamsModule,AIModule,EventsModule,NotificationModule,CacheModule
     ],
     controllers:[SubTeamsController, SubTeamImagesGet, SubTeamMembersController, LearningPhaseController,SubTeamChannelController,SubTeamChannelChatsController],
     providers:[ISubTeamsServiceProvider,ISubTeamsMembersServiceProvider,ILearningPhaseServiceProvider,SubTeamsProfile,ISubTeamsChannelServiceProvider],
