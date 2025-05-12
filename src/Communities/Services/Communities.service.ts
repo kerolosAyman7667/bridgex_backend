@@ -49,26 +49,25 @@ export class CommunitiesService implements ICommunitiesService {
     ) {
     }
 
-    async GetUserCommunities(userId:string,dto: CommunitySearchDto): Promise<PaginationResponce<CommunityCardDto>>
-    {
-        const user: Users = await this.userService.FindOne({Id:userId},true,{CommunityLeaders:true,TeamActiveLeaders:true,SubTeams:true})
-        let communitiesId:string[] = [];
-        let subTeamIds:string[] = []
-        user.CommunityLeaders.forEach(x=> communitiesId.push(x.Id))
-        user.TeamActiveLeaders.forEach(x=> communitiesId.push(x.CommunityId))
-        user.SubTeams.forEach(x=> subTeamIds.push(x.SubTeamId))
+    // async GetUserCommunities(userId:string,dto: CommunitySearchDto): Promise<PaginationResponce<CommunityCardDto>>
+    // {
+    //     const user: Users = await this.userService.FindOne({Id:userId},true,{CommunityLeaders:true,TeamActiveLeaders:true,SubTeams:true})
+    //     let communitiesId:string[] = [];
+    //    // let subTeamIds:string[] = []
+    //     user.CommunityLeaders.forEach(x=> communitiesId.push(x.Id))
+    //     user.TeamActiveLeaders.forEach(x=> communitiesId.push(x.CommunityId))
+    //     user.SubTeams.forEach(x=> communitiesId.push(x.CommunityId))
 
-        const communities = await this.repo.FindAllPaginated(
-            [
-                { Id: In(communitiesId),Name: Like(`%${dto?.Name}%`)  },
-                { SubTeams: {Id:In(subTeamIds)},Name: Like(`%${dto?.Name}%`)  }
-            ],
-            {Leader:true,SubTeams:{Members:true},Teams:true}, dto)
-        return new PaginationResponce<CommunityCardDto>(
-            await this.mapper.mapArrayAsync(communities.Data, Communities, CommunityCardDto),
-            communities.Count
-        )
-    }
+    //     const communities = await this.repo.FindAllPaginated(
+    //         { Id: In(communitiesId),Name: Like(`%${dto?.Name}%`)  },
+    //         {Leader:true,SubTeams:{Members:true},Teams:true}, 
+    //     dto)
+
+    //     return new PaginationResponce<CommunityCardDto>(
+    //         await this.mapper.mapArrayAsync(communities.Data, Communities, CommunityCardDto),
+    //         communities.Count
+    //     )
+    // }
 
     async Insert(dataToInsert: CommunityCreateDto): Promise<CommunityCardDto> {
         const user: Users = await this.userService.FindOne({Email:dataToInsert.LeaderEmail},true,{TeamActiveLeaders:true,SubTeams:true})

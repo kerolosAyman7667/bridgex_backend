@@ -7,6 +7,8 @@ import { ICanModify } from "src/Common/Generic/Contracts/ICanModify";
 import { UserPreviewDto } from "src/Users/Dtos/UserPreview.dto";
 import { MemberReturnDto } from "./SubTeamMembersDtos/MemberReturn.dto";
 import { ChannelDto } from "src/Common/Channels/Dtos/Channel.dto";
+import { CommunityBasicDto } from "src/Communities/Dtos/CommunityBasic.dto";
+import { TeamBasicDto } from "src/Teams/Dtos/TeamBasic.dto";
 
 export class SubTeamDto {
 
@@ -61,13 +63,21 @@ export class SubTeamDto {
     @AutoMap()
     MembersCount:number = 0
 
-    @AutoMap()
+    @ApiProperty()
     @AutoMap()
     LearningPhaseTitle: string
 
-    @AutoMap()
+    @ApiProperty()
     @AutoMap()
     LearningPhaseDesc?: string
+
+    @ApiProperty()
+    @AutoMap(()=> TeamBasicDto)
+    Team:TeamBasicDto
+
+    @ApiProperty()
+    @AutoMap(()=> CommunityBasicDto)
+    Community:CommunityBasicDto
 }
 
 

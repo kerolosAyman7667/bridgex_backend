@@ -17,6 +17,7 @@ import { TeamChannels } from '../Models/TeamChannels.entity';
 import { ChannelDto } from 'src/Common/Channels/Dtos/Channel.dto';
 import { TeamChannelChats } from '../Models/TeamChannelChats.entity';
 import { MessagesDto } from 'src/Common/Channels/Dtos/Messages.dto';
+import { TeamBasicDto } from '../Dtos/TeamBasic.dto';
 
 @Injectable()
 export class TeamsProfile extends AutomapperProfile {
@@ -50,6 +51,7 @@ export class TeamsProfile extends AutomapperProfile {
         createMap(mapper, TeamsMedia, MediaCreateDto),
         createMap(mapper, TeamAchievements, TeamAchievementDto)
         createMap(mapper, TeamChannels, ChannelDto);
+        createMap(mapper, Teams, TeamBasicDto);
         createMap(mapper, TeamChannelChats, MessagesDto,
           forMember(
             (destination: MessagesDto) => destination.ReplyTo,

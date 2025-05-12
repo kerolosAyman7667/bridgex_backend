@@ -1,5 +1,7 @@
 import { AutoMap } from "@automapper/classes";
 import { ApiProperty } from "@nestjs/swagger";
+import { CommunityBasicDto } from "src/Communities/Dtos/CommunityBasic.dto";
+import { TeamBasicDto } from "src/Teams/Dtos/TeamBasic.dto";
 
 export class SubTeamCardDto
 {
@@ -22,4 +24,20 @@ export class SubTeamCardDto
     @ApiProperty()
     @AutoMap()
     MembersCount:number = 0
+
+    @ApiProperty()
+    @AutoMap()
+    LearningPhaseTitle: string
+
+    @ApiProperty()
+    @AutoMap()
+    LearningPhaseDesc?: string
+
+    @ApiProperty()
+    @AutoMap(()=> TeamBasicDto)
+    Team:TeamBasicDto
+
+    @ApiProperty()
+    @AutoMap(()=> CommunityBasicDto)
+    Community:CommunityBasicDto
 }

@@ -10,6 +10,7 @@ import { CommunityDto } from '../Dtos/Community.dto';
 import { CommunitiesMedia } from '../Models/CommunitiesMedia.entity';
 import { ImagesDto } from 'src/Common/DTOs/Images.dto';
 import { MediaCreateDto } from 'src/Common/DTOs/MediaCreatedto';
+import { CommunityBasicDto } from '../Dtos/CommunityBasic.dto';
 
 @Injectable()
 export class CommunitiesProfile extends AutomapperProfile {
@@ -24,6 +25,7 @@ export class CommunitiesProfile extends AutomapperProfile {
   get profile(): MappingProfile {
     return (mapper) => {
       createMap(mapper,Communities,LogoDto),
+      createMap(mapper,Communities,CommunityBasicDto),
       createMap(mapper,Communities,CommunityCardDto),
       createMap(mapper,CommunitiesImages,ImagesDto, forMember(
             (destination:ImagesDto) => destination.Link,

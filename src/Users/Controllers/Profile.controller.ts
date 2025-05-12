@@ -1,5 +1,5 @@
 import { BadRequestException, Body, Controller, Delete, Get, Header, HttpCode, HttpStatus, Inject, Ip, NotAcceptableException, NotFoundException, Param, Patch, Post, Put, Query, Res, StreamableFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiConsumes, ApiCreatedResponse, ApiGoneResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiResponse, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiConsumes, ApiCreatedResponse, ApiGoneResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { Users } from "../Models/Users.entity";
 import { UsersService } from "../Services/Users.service";
 import { ResponseType } from "src/Common/ResponseType";
@@ -15,6 +15,7 @@ import { UpdatePasswordDto } from "../Dtos/UpdatePassword.dto";
 import { FilesInterceptor } from "@nestjs/platform-express/multer";
 import { IFileService } from "src/Common/FileUpload/IFile.service";
 import { ProfilePhotoFileOptions } from "src/Common/FileUpload/FileTypes/ProfilePhoto.file";
+import { UserDataDto } from "../Dtos/UserData.dto";
 
 @ApiTags('Users Profile')
 @Controller("users/profile")
@@ -196,5 +197,20 @@ export class UsersProfileController {
         }
 
         return await this.fileServce.Get(`${ProfilePhotoFileOptions.Dest}${userDb.ProfilePhoto.split("/").pop()}`, ProfilePhotoFileOptions)
+    }
+
+    /**
+     * Retrieves User Data
+    */
+    @Get("data")
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get User Communities subteam teams and last 10 channels' })
+    @ApiResponse({ status: 200, description: 'THIS IS Pagination Responce', type: UserDataDto })
+    @UseGuards(JWTGaurd)
+    async GetUserCommunities(
+        @CurrentUserDecorator() user:TokenPayLoad
+    ): Promise<ResponseType<UserDataDto>> {
+        const cards = await this.service.GetUserData(user.UserId);
+        return new ResponseType<UserDataDto>(200, "successfully", cards)
     }
 }
