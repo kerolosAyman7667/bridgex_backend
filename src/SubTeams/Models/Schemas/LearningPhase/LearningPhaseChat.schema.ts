@@ -12,7 +12,7 @@ export class LearningPhaseChatSchema extends Schema<LearningPhaseChat> {
             columns: {
                 message: {
                     type: "varchar",
-                    length: 2000,
+                    length: 3000,
                     nullable: false,
                 },
                 SubTeamId:{

@@ -13,7 +13,7 @@ export class LearningPhaseVideosSchema extends Schema<LearningPhaseVideos> {
             columns: {
                 Name: {
                     type: "varchar",
-                    length: 50,
+                    length: 3000,
                     nullable: false,
                 },
                 SectionId:{
@@ -23,12 +23,12 @@ export class LearningPhaseVideosSchema extends Schema<LearningPhaseVideos> {
                 },
                 File:{
                     type:"varchar",
-                    length: 500,
+                    length: 3000,
                     nullable: false,
                 },
                 Desc:{
                     type:"varchar",
-                    length:325,
+                    length:3000,
                     nullable:true
                 },
                 Duration:{

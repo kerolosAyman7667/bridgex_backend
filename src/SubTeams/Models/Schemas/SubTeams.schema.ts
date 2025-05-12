@@ -17,27 +17,27 @@ export class SubTeamsSchema extends Schema<SubTeams> {
             columns: {
                 Name: {
                     type: "varchar",
-                    length: 15,
+                    length: 200,
                     nullable: false,
                 },
                 Desc: {
                     type: "varchar",
-                    length: 325,
+                    length: 3000,
                     nullable: true,
                 },
                 DescShort: {
                     type: "varchar",
-                    length: 80,
+                    length: 3000,
                     nullable: true,
                 },
                 Logo: {
                     type: "varchar",
-                    length: 255,
+                    length: 200,
                     nullable: true,
                 },
                 Vision: {
                     type: "varchar",
-                    length: 325,
+                    length: 3000,
                     nullable: true,
                 },
                 CommunityId: {
@@ -52,25 +52,28 @@ export class SubTeamsSchema extends Schema<SubTeams> {
                 },
                 JoinLink: {
                     type: "varchar",
-                    length: 500,
+                    length: 1000,
                     nullable: true,
                 },
                 LearningPhaseTitle: {
                     type: "varchar",
-                    length: 15,
+                    length: 200,
                     nullable: false,
                 },
                 LearningPhaseDesc: {
                     type: "varchar",
-                    length: 325,
+                    length: 3000,
                     nullable: true,
                 },
                 KnowledgeBaseId:{
                     type:"varchar",
-                    length: 24,
+                    length: 50,
                     nullable: true,
                 },
             },
+            indices:[
+                {unique:true,columns:[GetKey<SubTeams>("TeamId"),GetKey<SubTeams>("Name")]},
+            ],
             relations: {
                 Community: {
                     type: "many-to-one",

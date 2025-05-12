@@ -16,28 +16,28 @@ export class CommunitiesSchema extends Schema<Communities> {
             columns: {
                 Name: {
                     type: "varchar",
-                    length: 15,
+                    length: 200,
                     nullable: false,
                     unique:true
                 },
                 Desc: {
                     type: "varchar",
-                    length: 325,
+                    length: 3000,
                     nullable: true,
                 },
                 DescShort: {
                     type: "varchar",
-                    length: 80,
+                    length: 3000,
                     nullable: true,
                 },
                 Logo:{
                     type: "varchar",
-                    length: 255,
+                    length: 3000,
                     nullable: true,
                 },
                 Vision: {
                     type: "varchar",
-                    length: 325,
+                    length: 3000,
                     nullable: true,
                 },
                 LeaderId: {

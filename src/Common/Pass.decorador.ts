@@ -6,13 +6,13 @@ import { IsString, IsNotEmpty, IsStrongPassword, MaxLength } from "class-validat
 export const PassDecorador = ()=> applyDecorators(
     IsString({ message: "Enter a valid password" }),
     IsNotEmpty({ message: "Enter a valid password" }),
-    IsStrongPassword({ minLength: 8, minLowercase: 0, minNumbers: 0, minSymbols: 0, minUppercase: 0 }, { message: "Enter a valid password" }),
+    IsStrongPassword({ minLength: 8, minLowercase: 1, minNumbers: 1, minSymbols: 1, minUppercase: 1 }, { message: "Enter a valid password" }),
     MaxLength(20, { message: "Enter a valid password" }),
     ApiProperty({
         type: "string",
         nullable: false,
         required: true,
-        minLength: 7,
+        minLength: 8,
         maxLength: 20,
     }),
 )

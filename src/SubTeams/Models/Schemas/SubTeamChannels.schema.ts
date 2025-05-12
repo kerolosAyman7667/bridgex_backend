@@ -11,7 +11,7 @@ export class SubTeamChannelsSchema extends Schema<SubTeamChannels> {
             columns: {
                 Name: {
                     type: "varchar",
-                    length: 50,
+                    length: 3000,
                     nullable: false,
                 },
                 SubTeamId:{

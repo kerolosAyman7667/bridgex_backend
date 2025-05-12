@@ -11,12 +11,12 @@ export class CommunitiesMediaSchema extends Schema<CommunitiesMedia> {
             columns: {
                 Name: {
                     type: "varchar",
-                    length: 50,
+                    length: 3000,
                     nullable: true,
                 },
                 Link:{
                     type: "varchar",
-                    length: 255,
+                    length: 3000,
                     nullable: false,
                 },
                 CommunityId:{
