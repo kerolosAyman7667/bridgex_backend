@@ -63,21 +63,21 @@ export class CommunitiesController {
         return new ResponseType<PaginationResponce<CommunityCardDto>>(200, "Get Communities cards successfully", cards)
     }
 
-    /**
-     * Retrieves paginated list of user communities
-    */
-    @Get("user")
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Get paginated list of user communities' })
-    @ApiResponse({ status: 200, description: 'THIS IS Pagination Responce', type: CommunityCardDto })
-    @UseGuards(JWTGaurd)
-    async GetUserCommunities(
-        @Query() dto: CommunitySearchDto,
-        @CurrentUserDecorator() user:TokenPayLoad
-    ): Promise<ResponseType<PaginationResponce<CommunityCardDto>>> {
-        const cards = await this.service.GetUserCommunities(user.UserId,dto);
-        return new ResponseType<PaginationResponce<CommunityCardDto>>(200, "Get user communities cards successfully", cards)
-    }
+    // /**
+    //  * Retrieves paginated list of user communities
+    // */
+    // @Get("user")
+    // @ApiBearerAuth()
+    // @ApiOperation({ summary: 'Get paginated list of user communities' })
+    // @ApiResponse({ status: 200, description: 'THIS IS Pagination Responce', type: CommunityCardDto })
+    // @UseGuards(JWTGaurd)
+    // async GetUserCommunities(
+    //     @Query() dto: CommunitySearchDto,
+    //     @CurrentUserDecorator() user:TokenPayLoad
+    // ): Promise<ResponseType<PaginationResponce<CommunityCardDto>>> {
+    //     const cards = await this.service.GetUserCommunities(user.UserId,dto);
+    //     return new ResponseType<PaginationResponce<CommunityCardDto>>(200, "Get user communities cards successfully", cards)
+    // }
 
     /**
      * Retrieves a specific community by ID

@@ -18,6 +18,19 @@ import { VerificationCacheKeys } from "src/AuthModule/Dtos/VerificationType";
 import { VerifyError } from "../Errors/VerifyError";
 import { BadValidationException, ClassValidatorExceptionDto } from "src/Common/ClassValidatorException.dto";
 import { Not } from "typeorm";
+import { UserDataDto } from "../Dtos/UserData.dto";
+import { Communities } from "src/Communities/Models/Communities.entity";
+import { CommunityCardDto } from "src/Communities/Dtos/CommunityCard.dto";
+import { Teams } from "src/Teams/Models/Teams.entity";
+import { TeamCardDto } from "src/Teams/Dtos/TeamCard.dto";
+import { SubTeams } from "src/SubTeams/Models/SubTeams.entity";
+import { SubTeamCardDto } from "src/SubTeams/Dtos/SubTeamCard.dto";
+import { GetKey } from "src/Common/GetKeyFrom";
+import { SubTeamChannelChats } from "src/SubTeams/Models/SubTeamChannelChats.entity";
+import { SubTeamChannels } from "src/SubTeams/Models/SubTeamChannels.entity";
+import { ChannelDto } from "src/Common/Channels/Dtos/Channel.dto";
+import { TeamChannelChats } from "src/Teams/Models/TeamChannelChats.entity";
+import { TeamChannels } from "src/Teams/Models/TeamChannels.entity";
 
 @Injectable({scope:Scope.REQUEST})
 export class UsersService extends GenericService<Users>
@@ -236,5 +249,49 @@ export class UsersService extends GenericService<Users>
 
         const newPassword:string =  await bcrypt.hash(data.NewPassword,await bcrypt.genSalt());
         await this.Update(userId,{Password:newPassword});
+    }
+
+
+    async GetUserData(userId:string): Promise<UserDataDto>
+    {
+        const user: Users = await this.FindOne({Id:userId},true,
+            {
+                CommunityLeaders:true,
+                TeamActiveLeaders:{Community:true},
+                SubTeams:{SubTeam:{Community:true,Team:true}}
+            }
+        )
+
+        const subTeamChannels = await this.repo.Repo
+            .createQueryBuilder("user")
+            .innerJoinAndSelect(`user.${GetKey<Users>("UserSubTeamChat")}`, "message")
+            .innerJoinAndSelect(`message.${GetKey<SubTeamChannelChats>("Channel")}`, "channel")
+            .where("user.id = :userId", { userId })
+            .groupBy(`channel.${GetKey<SubTeamChannels>("Id")}`)
+            .orderBy(`message.${GetKey<SubTeamChannelChats>("CreatedAt")}`, "DESC")
+            .limit(5)
+            .getOne();
+
+        const teamChannels = await this.repo.Repo
+            .createQueryBuilder("user")
+            .innerJoinAndSelect(`user.${GetKey<Users>("UserTeamChat")}`, "message")
+            .innerJoinAndSelect(`message.${GetKey<TeamChannelChats>("Channel")}`, "channel")
+            .where("user.id = :userId", { userId })
+            .groupBy(`channel.${GetKey<TeamChannels>("Id")}`)
+            .orderBy(`message.${GetKey<TeamChannelChats>("CreatedAt")}`, "DESC")
+            .limit(5)
+            .getOne();
+
+        const dto = new UserDataDto();
+        dto.Communities = await this.mapper.mapArrayAsync(user.CommunityLeaders,Communities,CommunityCardDto);
+        dto.Teams = await this.mapper.mapArrayAsync(user.TeamActiveLeaders,Teams,TeamCardDto);
+        dto.SubTeams = await this.mapper.mapArrayAsync(user.SubTeams.map(x=> x.SubTeam),SubTeams,SubTeamCardDto);
+        dto.Channels.push(
+            ...(!subTeamChannels ? [] : await this.mapper.mapArrayAsync(subTeamChannels.UserSubTeamChat.map(x=> x.Channel),SubTeamChannels,ChannelDto)))
+        dto.Channels.push(
+            ...(!teamChannels ? [] : await this.mapper.mapArrayAsync(teamChannels.UserTeamChat.map(x=> x.Channel),TeamChannels,ChannelDto))
+        )
+
+        return dto;
     }
 }

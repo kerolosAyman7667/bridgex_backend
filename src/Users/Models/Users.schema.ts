@@ -6,6 +6,8 @@ import { GetKey } from "src/Common/GetKeyFrom";
 import { SubTeamMembers } from "src/SubTeams/Models/SubTeamMembers.entity";
 import { Teams } from "src/Teams/Models/Teams.entity";
 import { UserProgress } from "src/SubTeams/Models/LearningPhase/UserProgress.entity";
+import { SubTeamChannelChats } from "src/SubTeams/Models/SubTeamChannelChats.entity";
+import { TeamChannelChats } from "src/Teams/Models/TeamChannelChats.entity";
 
 
 // The maximum first name length was 46. I go with 50. (Of course, only 500 of those were over 25, and they were all cases where data imports resulted in extra junk winding up in that field.)
@@ -111,6 +113,18 @@ export class UsersSchema extends Schema<Users> {
                     type: "one-to-many",
                     target: UserProgress.name,
                     inverseSide:GetKey<UserProgress>("User"),
+                    onDelete: "CASCADE",
+                },
+                UserSubTeamChat:{
+                    type: "one-to-many",
+                    target: SubTeamChannelChats.name,
+                    inverseSide:GetKey<SubTeamChannelChats>("User"),
+                    onDelete: "CASCADE",
+                },
+                UserTeamChat:{
+                    type: "one-to-many",
+                    target: TeamChannelChats.name,
+                    inverseSide:GetKey<TeamChannelChats>("User"),
                     onDelete: "CASCADE",
                 },
             },
