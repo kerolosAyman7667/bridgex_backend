@@ -1,5 +1,5 @@
 import { BadRequestException, Body, Controller, Delete, Get, Header, HttpStatus, Inject, NotFoundException, Param, Patch, Post, Query, Req, Res, StreamableFile, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiBody, ApiParam } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiBody, ApiParam, ApiQuery } from "@nestjs/swagger";
 import { JWTGaurd } from "src/AuthModule/Gaurds/JWT.gaurd";
 import { SubTeamParamDecorator, SubTeamParamPipe, SubTeamParamWithSectionPipe } from "./SubTeamParam";
 import { ISubTeamsService } from "../Services/SubTeams/ISubTeams.service";
@@ -313,6 +313,7 @@ export class LearningPhaseController
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
     @ApiParam({name:"videoId" , type:"string"})
+    @ApiQuery({name:"token",required:true})
     async handleGetVideo(
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionVideo,
         @Param("videoId") videoId:string,
@@ -325,13 +326,13 @@ export class LearningPhaseController
         const userId = await this.cacheService.GetSet({Key:`learning:${searchId.subTeamId}:${token}`})
         if(!userId)
         {
-            throw new NotFoundException("Resource not found")
+            throw new NotFoundException("Video not found")
         }
 
         const isMemberExits = await this.memberService.IsMemberExist(searchId.subTeamId,userId);
         if(!isMemberExits.IsLeader && !isMemberExits.IsMember)
         {
-            throw new NotFoundException("Resource not found")
+            throw new NotFoundException("Video not found")
         }
         const filePath = join(__dirname,"..","..","..","files",video.File); // Assuming this is a path to the file
         const stat = await promises.stat(filePath);
@@ -414,14 +415,21 @@ export class LearningPhaseController
     @SubTeamParamDecorator(true)
     @ApiParam({name:"sectionId" , type:"string"})
     @ApiParam({name:"resourceId" , type:"string"})
-    @UseGuards(JWTGaurd)
+    @ApiQuery({name:"token",required:true})
     async handleGetResource(
         @Param(new SubTeamParamWithSectionPipe()) searchId: SubTeamSearchIdWithSectionResource,
         @Param("resourceId") resourceId:string,
-        @CurrentUserDecorator() user:TokenPayLoad
+        @Query("token") token:string
     ): Promise<StreamableFile> {
         const resource = await this.learningPhaseService.GetResource(resourceId,searchId);
-        const isMemberExits = await this.memberService.IsMemberExist(searchId.subTeamId,user.UserId);
+
+        const userId = await this.cacheService.GetSet({Key:`learning:${searchId.subTeamId}:${token}`})
+        if(!userId)
+        {
+            throw new NotFoundException("Resource not found")
+        }
+
+        const isMemberExits = await this.memberService.IsMemberExist(searchId.subTeamId,userId);
         if(!isMemberExits.IsLeader && !isMemberExits.IsMember)
         {
             throw new NotFoundException("Resource not found")
