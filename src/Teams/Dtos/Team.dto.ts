@@ -66,14 +66,15 @@ export class TeamDto {
     @ApiProperty()
     CreatedAt: Date
 
-    @ApiProperty()
+    @ApiProperty({type:UserPreviewWithEmailDto})
     @AutoMap(()=> UserPreviewWithEmailDto)
     Leader:UserPreviewWithEmailDto
 
-    @ApiProperty()
-    @AutoMap(()=> SubTeamCardDto)
+    @ApiProperty({type:[SubTeamCardDto]})
+    @AutoMap(()=> [SubTeamCardDto])
     SubTeams:SubTeamCardDto[] = []
 
+    @ApiProperty({type:CommunityBasicDto})
     @AutoMap(()=> CommunityBasicDto)
     Community: CommunityBasicDto
 }

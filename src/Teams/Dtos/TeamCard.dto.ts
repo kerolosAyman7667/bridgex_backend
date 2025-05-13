@@ -25,10 +25,11 @@ export class TeamCardDto
     @AutoMap()
     MembersCount:number = 0
 
-    @ApiProperty()
+    @ApiProperty({type:UserPreviewWithEmailDto})
     @AutoMap(()=> UserPreviewWithEmailDto)
     Leader:UserPreviewWithEmailDto
 
+    @ApiProperty({type:CommunityBasicDto})
     @AutoMap(()=> CommunityBasicDto)
     Community: CommunityBasicDto
 }

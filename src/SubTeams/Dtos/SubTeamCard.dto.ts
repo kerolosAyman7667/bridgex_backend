@@ -33,11 +33,11 @@ export class SubTeamCardDto
     @AutoMap()
     LearningPhaseDesc?: string
 
-    @ApiProperty()
+    @ApiProperty({type:[TeamBasicDto]})
     @AutoMap(()=> TeamBasicDto)
     Team:TeamBasicDto
 
-    @ApiProperty()
+    @ApiProperty({type:[CommunityBasicDto]})
     @AutoMap(()=> CommunityBasicDto)
     Community:CommunityBasicDto
 }
