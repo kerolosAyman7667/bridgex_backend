@@ -71,7 +71,7 @@ FRONTEND_DOMAIN= Frontend domain name
 FRONTEND_PORT= Frontend Port ( so if it runs on whatever it will work)
 FRONTEND_PROTOCOL= Frontend Protocol ( so if it runs on dev environment or no ssl it will work)
 FRONTEND_VERIFY_RELATIVE_URL=signUp/verifyEmail # DON'T change
-AIBASEURL=http://abdullahabaza.me/api # DON'T change
+AIBASEURL=http://abdullahabaza.me/api # Change to AI BridgeX API base URL NOTE: Currently this API URL is unavailable
 
 ---
 
@@ -116,4 +116,5 @@ npm run copylogo : this command to copy the default logo to the dist
 it runs auto with npm run build and others ( if changes happened need to restart app )
 
 npm run copytemps : this command to copy the email temps to the dist 
+
 it runs auto with npm run build and others ( if changes happened need to restart app )
