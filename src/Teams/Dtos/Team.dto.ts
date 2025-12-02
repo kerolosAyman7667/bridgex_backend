@@ -9,6 +9,8 @@ import { ICanModify } from "src/Common/Generic/Contracts/ICanModify";
 import { UserPreviewWithEmailDto } from "src/Users/Dtos/UserPreview.dto";
 import { SubTeamCardDto } from "src/SubTeams/Dtos/SubTeamCard.dto";
 import { ChannelDto } from "src/Common/Channels/Dtos/Channel.dto";
+import { CommunityCardDto } from "src/Communities/Dtos/CommunityCard.dto";
+import { CommunityBasicDto } from "src/Communities/Dtos/CommunityBasic.dto";
 
 export class TeamDto {
 
@@ -64,13 +66,17 @@ export class TeamDto {
     @ApiProperty()
     CreatedAt: Date
 
-    @ApiProperty()
+    @ApiProperty({type:UserPreviewWithEmailDto})
     @AutoMap(()=> UserPreviewWithEmailDto)
     Leader:UserPreviewWithEmailDto
 
-    @ApiProperty()
-    @AutoMap(()=> SubTeamCardDto)
-    SubTeams:SubTeamCardDto
+    @ApiProperty({type:[SubTeamCardDto]})
+    @AutoMap(()=> [SubTeamCardDto])
+    SubTeams:SubTeamCardDto[] = []
+
+    @ApiProperty({type:CommunityBasicDto})
+    @AutoMap(()=> CommunityBasicDto)
+    Community: CommunityBasicDto
 }
 
 export class TeamWithCanModifyDto extends TeamDto implements ICanModify

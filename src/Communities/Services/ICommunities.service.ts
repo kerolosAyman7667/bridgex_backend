@@ -28,13 +28,13 @@ export interface ICommunitiesService extends IVerifyLeader<Communities>{
      */
     GetCards(dto: CommunitySearchDto): Promise<PaginationResponce<CommunityCardDto>>;
 
-    /**
-     * Retrieves paginated community cards based on search criteria
-     * @param dto - Search parameters for communities
-     * @param userId
-     * @returns Promise containing paginated community cards
-     */
-    GetUserCommunities(userId:string,dto: CommunitySearchDto): Promise<PaginationResponce<CommunityCardDto>>
+    // /**
+    //  * Retrieves paginated community cards based on search criteria
+    //  * @param dto - Search parameters for communities
+    //  * @param userId
+    //  * @returns Promise containing paginated community cards
+    //  */
+    // GetUserCommunities(userId:string,dto: CommunitySearchDto): Promise<PaginationResponce<CommunityCardDto>>
 
     /**
      * Retrieves detailed information about a specific community

@@ -30,6 +30,8 @@ export interface ILearningPhaseService
     //#region "Resource" 
     GetResource(resourceId:string,searchIds:SubTeamSearchIdWithSection) : Promise<LearningPhaseResourceDto>;
 
+    GetResourceById(resourceId:string) : Promise<LearningPhaseResourceDto>;
+
     UploadResource(dto:CreateResourceDto,file:Express.Multer.File,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<LearningPhaseResourceDto>
 
     UpdateResource(dto:CreateResourceDto,resourceId:string,searchIds:SubTeamSearchIdWithSection,leaderId:string) : Promise<void>

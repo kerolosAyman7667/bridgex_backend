@@ -11,12 +11,12 @@ export class SubTeamImagesSchema extends Schema<SubTeamImages> {
             columns: {
                 Name: {
                     type: "varchar",
-                    length: 50,
+                    length: 3000,
                     nullable: true,
                 },
                 File:{
                     type: "varchar",
-                    length: 255,
+                    length: 3000,
                     nullable: false,
                 },
                 SubTeamId:{

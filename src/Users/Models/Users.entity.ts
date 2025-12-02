@@ -6,6 +6,8 @@ import { Communities } from "src/Communities/Models/Communities.entity";
 import { SubTeamMembers } from "src/SubTeams/Models/SubTeamMembers.entity";
 import { Teams } from "src/Teams/Models/Teams.entity";
 import { UserProgress } from "src/SubTeams/Models/LearningPhase/UserProgress.entity";
+import { SubTeamChannelChats } from "src/SubTeams/Models/SubTeamChannelChats.entity";
+import { TeamChannelChats } from "src/Teams/Models/TeamChannelChats.entity";
 
 export class Users extends EntityBase {
 
@@ -50,4 +52,10 @@ export class Users extends EntityBase {
 
     @AutoMap()
     UserProgress?:UserProgress[] 
+
+    @AutoMap()
+    UserTeamChat?:TeamChannelChats[] 
+
+    @AutoMap()
+    UserSubTeamChat?:SubTeamChannelChats[] 
 }

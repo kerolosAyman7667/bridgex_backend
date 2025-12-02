@@ -16,7 +16,7 @@ import { SubTeamCreateDto } from "../../Dtos/SubTeamCreate.dto";
 import { SubTeamSearchId } from "../../Dtos/SubTeamSearchId";
 import { SubTeamUpdateDto } from "../../Dtos/SubTeamUpdate.dto";
 import { ITeamsService } from "src/Teams/Services/ITeams.service";
-import { IsNull, Not, Raw } from "typeorm";
+import { IsNull, Not, Or, Raw } from "typeorm";
 import { SubTeamsConstants } from "../../SubTeamsConstants";
 import { SubTeamLogoFileOptions } from "src/Common/FileUpload/FileTypes/SubTeamLogo.file";
 import { SubTeamImagesFileOptions } from "src/Common/FileUpload/FileTypes/SubTeamImages.file";
@@ -33,6 +33,7 @@ import { ChatResponseDto, ChatResponseWithMessageDto } from "src/AIModule/Dtos/C
 import { LearningPhaseChat } from "src/SubTeams/Models/LearningPhase/LearningPhaseChat.entity";
 import { PaginationResponce } from "src/Common/Pagination/PaginationResponce.dto";
 import { SortType } from "src/Common/Pagination/Pagination";
+import { LearningPhaseResources } from "src/SubTeams/Models/LearningPhase/LearningPhaseResources.entity";
 
 
 /**
@@ -56,6 +57,9 @@ export class SubTeamService implements ISubTeamsService {
 
         @Inject(`REPO_${LearningPhaseChat.name.toUpperCase()}`)
         private readonly learningPhaseChatRepo: IGenericRepo<LearningPhaseChat>,
+
+        @Inject(`REPO_${LearningPhaseResources.name.toUpperCase()}`)
+        private readonly learningPhaseResources: IGenericRepo<LearningPhaseResources>,
 
         @Inject(IFileService)
         private readonly fileService: IFileService,
@@ -173,7 +177,7 @@ export class SubTeamService implements ISubTeamsService {
     async GetSubTeams(communityId: string, teamId: string): Promise<SubTeamCardDto[]> {
         const team = await this.teamService.GetTeam(teamId, communityId);
 
-        const subTeams: SubTeams[] = await this.repo.FindAll({ CommunityId: communityId, TeamId: team.Id },{Members:true})
+        const subTeams: SubTeams[] = await this.repo.FindAll({ CommunityId: communityId, TeamId: team.Id },{Members:true,Community:true,Team:true})
 
         return await this.mapper.mapArrayAsync(subTeams, SubTeams, SubTeamCardDto)
     }
@@ -296,6 +300,19 @@ export class SubTeamService implements ISubTeamsService {
             throw new InternalServerErrorException("This sub team has no contact with ai")
         }
         const aiResponse = await this.aiService.Chat(subTeam.KnowledgeBaseId,data.Message);
+        const resources = await this.learningPhaseResources.FindAll(
+            aiResponse?.sources?.map(x=> ({AIAssetId:x?.metadata?.asset_id}))
+        )
+
+        aiResponse?.sources?.forEach(x=>{
+            const currentSource = resources.filter(y=> y.AIAssetId === x?.metadata?.asset_id)
+            if(currentSource.length > 0)
+            {
+                x.metadata.document_name = currentSource[0].Name
+                x.metadata.source_path = currentSource[0].File
+            }
+        })
+
         const chat  = new LearningPhaseChat()
         chat.SubTeamId = subTeam.Id;
         chat.UserId = userId;

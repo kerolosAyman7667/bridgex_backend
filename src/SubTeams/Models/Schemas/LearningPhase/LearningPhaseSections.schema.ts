@@ -13,7 +13,7 @@ export class LearningPhaseSectionsSchema extends Schema<LearningPhaseSections> {
             columns: {
                 Name: {
                     type: "varchar",
-                    length: 50,
+                    length: 3000,
                     nullable: false,
                 },
                 SubTeamId:{
@@ -23,7 +23,7 @@ export class LearningPhaseSectionsSchema extends Schema<LearningPhaseSections> {
                 },
                 Number:{
                     type:"int",
-                    default:0,
+                    default:1,
                     nullable: false,
                 },
             },

@@ -4,20 +4,20 @@ import { MaxLength, MinLength } from "class-validator"
 export class CreateLearningPhaseDto
 {
     @ApiProperty({
-        maxLength:15,
+        maxLength:200,
         minLength:5,
         required:true
     })
-    @MaxLength(15)
+    @MaxLength(200)
     @MinLength(5)
     Name:string
 
     @ApiProperty({
-        maxLength:325,
+        maxLength:3000,
         minLength:5,
         required:true
     })
-    @MaxLength(325)
+    @MaxLength(3000)
     @MinLength(5)
     Desc:string
 }

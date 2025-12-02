@@ -12,7 +12,7 @@ export class LearningPhaseResourcesSchema extends Schema<LearningPhaseResources>
             columns: {
                 Name: {
                     type: "varchar",
-                    length: 50,
+                    length: 3000,
                     nullable: false,
                 },
                 SectionId:{
@@ -22,12 +22,12 @@ export class LearningPhaseResourcesSchema extends Schema<LearningPhaseResources>
                 },
                 File:{
                     type:"varchar",
-                    length: 500,
+                    length: 3000,
                     nullable: false,
                 },
                 AIAssetId:{
                     type:"varchar",
-                    length: 24,
+                    length: 50,
                     nullable: true,
                 },
             },

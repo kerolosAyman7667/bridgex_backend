@@ -30,6 +30,11 @@ export class Metadata {
   @AutoMap()
   @ApiProperty({ default: null })
   @Expose()
+  asset_id: string | null = null;
+
+  @AutoMap()
+  @ApiProperty({ default: null })
+  @Expose()
   document_name: string | null = null;
 
   @AutoMap()

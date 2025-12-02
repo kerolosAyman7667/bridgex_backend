@@ -11,17 +11,17 @@ export class TeamAchievementsSchema extends Schema<TeamAchievements> {
             columns: {
                 Title: {
                     type: "varchar",
-                    length: 50,
+                    length: 3000,
                     nullable: false,
                 },
                 ImageLink:{
                     type: "varchar",
-                    length: 255,
+                    length: 3000,
                     nullable: false,
                 },
                 Desc:{
                     type: "varchar",
-                    length: 600,
+                    length: 3000,
                     nullable: true,
                 },
                 TeamId:{

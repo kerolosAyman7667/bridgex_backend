@@ -94,7 +94,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         const user:Users = await this.userService.FindOne({ Id: userId }, true, { CommunityLeaders: true, TeamActiveLeaders: true })
         const subTeam: SubTeams = await this.subTeamService.GetSubTeamById(subTeamId)
 
-        await this.AddMemberBasic(user,subTeam)
+        await this.AddMemberBasic(user,subTeam,false,null,false)
 
         return new JoinLinkDto(subTeam.JoinLink)
     }
@@ -103,7 +103,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         const subTeam: SubTeams = await this.subTeamService.VerifyLeaderId(subTeamId, leaderId)
         const user:Users = await this.userService.FindOne({ Email: userEmail }, true, { CommunityLeaders: true, TeamActiveLeaders: true })
 
-        const joinLik:boolean = await this.AddMemberBasic(user,subTeam,isHead,joinDate);
+        const joinLik:boolean = await this.AddMemberBasic(user,subTeam,isHead,joinDate,true);
         if(!joinLik)
         {
             throw new ConflictException("User already exist and need to be accepted")
@@ -116,7 +116,7 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
      * @param subTeam 
      * @returns {boolean} boolean - for successful operation returns true from already exist returns false
      */
-    async AddMemberBasic( user:Users,subTeam: SubTeams,isHead: boolean = false, joinDate: Date = null) : Promise<boolean>
+    async AddMemberBasic( user:Users,subTeam: SubTeams,isHead: boolean = false, joinDate: Date = null,isAdded:boolean) : Promise<boolean>
     {
         //get current active sub teams
         const isExist:SubTeamMembers[] = await this.membersRepo.FindAll({ UserId: user.Id,SubTeam:{CommunityId:subTeam.CommunityId} },{SubTeam:true})
@@ -126,7 +126,6 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
         newMember.UserId = user.Id;
         newMember.SubTeamId = subTeam.Id;
         newMember.LeaveDate = null;
-        newMember.JoinDate = null;
         newMember.IsHead = isHead;
         newMember.JoinDate = joinDate;
         newMember.CommunityId = subTeam.CommunityId;
@@ -155,9 +154,11 @@ export class SubTeamsMembersService implements ISubTeamsMembersService {
             if(newMember.IsHead)
             {
                 this.notiService.SendHeadSubTeamEmail(user.Email,user.FirstName,subTeam.Name)   
-            }else
+            }
+            else
             {
-                this.notiService.SendSubTeamMemberAddEmail(user.Email,user.FirstName,subTeam.Name)
+                if(isAdded)
+                    this.notiService.SendSubTeamMemberAddEmail(user.Email,user.FirstName,subTeam.Name)
             }
         }
         return true

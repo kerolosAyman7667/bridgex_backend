@@ -7,13 +7,13 @@ export class TeamAchievementCreateDto
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    @MaxLength(50)
+    @MaxLength(1000)
     public Title:string
     
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
-    @MaxLength(600)
+    @MaxLength(3000)
     public Desc:string
     
     /**

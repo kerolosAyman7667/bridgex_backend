@@ -3,11 +3,11 @@ import { MaxLength, MinLength, IsOptional, IsNumber, Min } from "class-validator
 
 export class CreateSectionDto {
     @ApiProperty({
-        maxLength: 15,
+        maxLength: 200,
         minLength: 5,
         required: true
     })
-    @MaxLength(15)
+    @MaxLength(200)
     @MinLength(5)
     Name: string
 

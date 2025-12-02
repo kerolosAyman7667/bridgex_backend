@@ -90,6 +90,20 @@ export class LearningPhaseService implements ILearningPhaseService {
         return returnDto
     }
 
+    async GetResourceById(resourceId: string): Promise<LearningPhaseResourceDto> {
+        const resource = await this.resourcesRepo.FindOne({ Id: resourceId}, { Section: true });
+        if (!resource) {
+            throw new NotFoundException("Resource not found");
+        }
+
+        const returnDto = new LearningPhaseResourceDto()
+        returnDto.File = resource.File;
+        returnDto.Name = resource.Name;
+        returnDto.Id = resource.Id;
+
+        return returnDto
+    }
+
     async AddSection(dto: CreateSectionDto, searchIds: SubTeamSearchId, leaderId: string): Promise<LearningPhaseSectionDto> {
         const subTeam = await this.subTeamService.VerifyLeaderId(searchIds.subTeamId, leaderId);
         const newSection = new LearningPhaseSections();

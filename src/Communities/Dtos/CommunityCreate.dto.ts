@@ -4,11 +4,11 @@ import { IsString, MaxLength, IsNotEmpty, IsEmail, Matches } from "class-validat
 export class CommunityCreateDto 
 {
     @IsString()
-    @MaxLength(15,{message:"Name maximum length is 15"})
+    @MaxLength(200,{message:"Name maximum length is 200"})
     @IsNotEmpty({message:"Name must be not empty"})
     @ApiProperty({
         name:"Name",
-        maxLength:15,
+        maxLength:200,
         type:"string",
         nullable:false,
         required:true
@@ -17,11 +17,9 @@ export class CommunityCreateDto
 
     @IsString()
     @IsEmail()
-    @MaxLength(62)
     @IsNotEmpty()
     @ApiProperty({
         name: "Email",
-        maxLength: 62,
         type: "string",
         nullable: false,
         required: true,
